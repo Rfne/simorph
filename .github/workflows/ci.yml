@@ -30,6 +30,7 @@ jobs:
         with:
           python-version: "3.13.7"
           cache: pip
+          cache-dependency-path: requirements-dev.lock
 
       - name: System libraries (Linux, Qt offscreen)
         if: runner.os == 'Linux'
