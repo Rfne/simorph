@@ -12,3 +12,46 @@
 # Built Visual Studio Code Extensions
 *.vsix
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Виртуальные окружения
+.venv/
+venv/
+env/
+
+# Инструменты
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+
+# Артефакты simorph
+artifacts/
+runs/
+logs/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.parquet
+
+# Временные файлы проекта
+*.tmp
+*.bak
+
+# ОС
+.DS_Store
+Thumbs.db
+desktop.ini

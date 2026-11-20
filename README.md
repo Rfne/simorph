@@ -1,4 +1,81 @@
 # simorph
 
-Рабочее название настольной программы для дообучения агентов патрулирования.
-Проект учебный: для защиты диссертации на соискание степени магистра в ИТМО.
+Настольная среда калибровки бортовых конвейеров патрульного робота (НРТК/БВС).
+Проект учебный: магистерская диссертация ИТМО, направление 27.04.03.
+
+`simorph` собирает, проверяет и калибрует бортовой «разум» на PC-прототипе
+до переноса на целевые платы RK3588 (RKNN) и A733 (ACUITY/NBG). Командный
+контур, ГИС, BIM и ЭДО в границы проекта не входят.
+
+Документация:
+
+- `docs/TRD-v1.0.md` — технические требования;
+- `docs/WP-v.1.0 (release-0, MVP).md` — рабочий план Release-0;
+- `docs/adr/` — архитектурные решения;
+- `CHANGELOG.md` — история изменений.
+
+## Требования
+
+- Python **3.13.7** (ровно эта версия; фиксируется `.python-version` и CI);
+- Windows 10/11 — основная платформа, Ubuntu 24.04 — вторичная;
+- для сборки PyBullet из исходников на Windows нужны MSVC Build Tools,
+  на Linux — `build-essential` (готовых wheel для Python 3.13 нет).
+
+## Установка
+
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# Linux:   source .venv/bin/activate
+
+python -m pip install --upgrade pip
+pip install -r requirements-dev.lock
+pip install -e . --no-deps
+```
+
+`requirements.lock` — только runtime, `requirements-dev.lock` — runtime и
+инструменты разработки. Оба файла генерируются `pip-compile` из `pyproject.toml`.
+
+## Проверка окружения
+
+```bash
+simorph version            # человекочитаемый список версий
+simorph version --json     # машиночитаемый вывод
+simorph selftest           # проверка обязательных зависимостей
+simorph selftest --ui --offscreen   # Qt без дисплея (как в CI)
+```
+
+Коды возврата: `0` — успех, `1` — ошибка данных или конфигурации,
+`2` — внутренняя ошибка. Лог пишется в stderr, JSON-lines — в `--log-file`.
+
+## Разработка
+
+```bash
+ruff check .
+ruff format --check .
+mypy
+pytest -m unit
+pytest --cov=simorph --cov-report=term-missing
+pre-commit install
+```
+
+Маркеры тестов: `unit`, `integration`, `ui`, `perf`, `regression`.
+
+## Структура
+
+```
+src/simorph/
+  cli/          командная строка, коды возврата
+  selftest/     самопроверка окружения и Qt
+  logging_setup.py  структурированное логирование, redaction
+  version.py    сбор версий из метаданных дистрибутивов
+tests/          unit, integration, ui
+scripts/        служебные скрипты (отчёт по лицензиям)
+docs/           TRD, WP, ADR
+```
+
+## Лицензии
+
+Код проекта — MIT (`LICENSE`). PyQt6 поставляется под GPLv3, поэтому
+совместная поставка должна соответствовать GPLv3; подробности и варианты
+решения — в `NOTICE`. Перечень сторонних лицензий — `THIRD_PARTY_LICENSES.md`.
