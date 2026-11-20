@@ -14,8 +14,8 @@ from simorph.settings import ApplicationSettings
 @pytest.fixture
 def settings(tmp_path: Path) -> ApplicationSettings:
     """Изолированный ``QSettings`` в ini-файле временного каталога."""
-    pytest.importorskip("PyQt6.QtCore")
-    from PyQt6.QtCore import QSettings
+    pytest.importorskip("PySide6.QtCore")
+    from PySide6.QtCore import QSettings
 
     return ApplicationSettings(
         QSettings(str(tmp_path / "settings.ini"), QSettings.Format.IniFormat)

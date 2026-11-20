@@ -17,9 +17,10 @@ HEADER = """# Сторонние лицензии
 Файл сгенерирован командой `python scripts/license_report.py`
 на основе установленного окружения (`pip-licenses`).
 
-Проект распространяется под MIT (см. `LICENSE`). Однако PyQt6 поставляется
-под GPLv3, поэтому совместная поставка приложения с PyQt6 должна
-соответствовать GPLv3 — это зафиксировано в `NOTICE` (риск NFR-LIC-02).
+Проект распространяется под MIT (см. `LICENSE`). Графическая библиотека —
+PySide6, лицензия LGPLv3 (двойная: LGPL-3.0 / GPL-2.0 / GPL-3.0, проект
+использует LGPL-3.0). Условия поставки зафиксированы в `NOTICE`
+(NFR-LIC-02, ADR-0003).
 
 | Пакет | Версия | Лицензия |
 |---|---|---|
@@ -51,7 +52,10 @@ def main() -> int:
         for pkg in sorted(packages, key=lambda item: str(item["Name"]).lower())
     ]
     target = repo_root / "THIRD_PARTY_LICENSES.md"
-    target.write_text(HEADER + "\n".join(rows) + "\n", encoding="utf-8")
+    # newline="\n" обязателен: иначе на Windows файл получит CRLF и хуки
+    # pre-commit будут править его при каждом прогоне.
+    with target.open("w", encoding="utf-8", newline="\n") as stream:
+        stream.write(HEADER + "\n".join(rows) + "\n")
 
     sys.stdout.write(f"записано {len(rows)} пакетов в {target.name}\n")
     return 0

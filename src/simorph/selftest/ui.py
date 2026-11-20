@@ -23,9 +23,9 @@ def run_ui_selftest(*, offscreen: bool = False, lifetime_ms: int = 0) -> int:
         os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
     try:
-        from PyQt6.QtCore import QT_VERSION_STR, QCoreApplication, QTimer
-        from PyQt6.QtGui import QGuiApplication
-        from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow
+        from PySide6.QtCore import QCoreApplication, QTimer, qVersion
+        from PySide6.QtGui import QGuiApplication
+        from PySide6.QtWidgets import QApplication, QLabel, QMainWindow
     except Exception:
         return int(ExitCode.INTERNAL_ERROR)
 
@@ -38,10 +38,10 @@ def run_ui_selftest(*, offscreen: bool = False, lifetime_ms: int = 0) -> int:
     window = QMainWindow()
     window.setWindowTitle("simorph selftest")
     window.resize(360, 180)
-    window.setCentralWidget(QLabel(f"simorph selftest: Qt {QT_VERSION_STR}"))
+    window.setCentralWidget(QLabel(f"simorph selftest: Qt {qVersion()}"))
     window.show()
 
-    QTimer.singleShot(lifetime_ms, application.quit)
+    QTimer.singleShot(max(lifetime_ms, 0), application.quit)
     code = application.exec()
     window.close()
 

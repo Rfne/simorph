@@ -3,9 +3,10 @@
 Файл сгенерирован командой `python scripts/license_report.py`
 на основе установленного окружения (`pip-licenses`).
 
-Проект распространяется под MIT (см. `LICENSE`). Однако PyQt6 поставляется
-под GPLv3, поэтому совместная поставка приложения с PyQt6 должна
-соответствовать GPLv3 — это зафиксировано в `NOTICE` (риск NFR-LIC-02).
+Проект распространяется под MIT (см. `LICENSE`). Графическая библиотека —
+PySide6, лицензия LGPLv3 (двойная: LGPL-3.0 / GPL-2.0 / GPL-3.0, проект
+использует LGPL-3.0). Условия поставки зафиксированы в `NOTICE`
+(NFR-LIC-02, ADR-0003).
 
 | Пакет | Версия | Лицензия |
 |---|---|---|
@@ -60,9 +61,11 @@
 | pydantic_core | 2.50.5 | MIT |
 | Pygments | 2.21.0 | BSD-2-Clause |
 | pyproject_hooks | 1.3.3 | MIT |
-| PyQt6 | 6.12.1 | GPL-3.0-only |
-| PyQt6-Qt6 | 6.12.0 | LGPL v3 |
-| PyQt6_sip | 13.13.1 | BSD-2-Clause |
+| PySide6 | 6.12.0 | LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only |
+| PySide6_Addons | 6.12.0 | LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only |
+| PySide6_Essentials | 6.12.0 | LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only |
+| PySide6_Pdf | 6.12.0.140 | LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only |
+| PySide6_WebEngine | 6.12.0.140 | LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only |
 | pytest | 9.2.0 | MIT |
 | pytest-cov | 7.1.0 | MIT |
 | pytest-qt | 4.5.0 | MIT License |
@@ -72,8 +75,9 @@
 | PyYAML | 6.0.3 | MIT License |
 | requests | 2.34.2 | Apache Software License |
 | ruff | 0.17.6 | MIT |
-| simorph | 0.1.0 | MIT |
-| simorph | 0.1.0 | MIT |
+| shiboken6 | 6.12.0 | LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only |
+| simorph | 0.3.0 | MIT |
+| simorph | 0.3.0 | MIT |
 | sympy | 1.14.0 | BSD License |
 | torch | 2.15.0 | Apache-2.0 AND Apache-2.0 WITH LLVM-exception AND BSD-2-Clause AND BSD-3-Clause AND BSL-1.0 AND ISC AND MIT AND Zlib |
 | tornado | 6.6.1 | Apache Software License |

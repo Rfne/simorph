@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # pragma: no cover - только для типизации
-    from PyQt6.QtCore import QSettings
+    from PySide6.QtCore import QSettings
 
 #: Организация и приложение для реестра/файла настроек.
 ORGANIZATION = "simorph"
@@ -35,8 +35,12 @@ LANGUAGES = ("ru", "en")
 
 
 def default_settings() -> QSettings:
-    """Создаёт ``QSettings`` для приложения."""
-    from PyQt6.QtCore import QSettings
+    """Создаёт ``QSettings`` для приложения.
+
+    Организация и приложение задаются явно: без них PySide6 положил бы файл
+    настроек в путь по умолчанию, зависящий от окружения.
+    """
+    from PySide6.QtCore import QSettings
 
     return QSettings(ORGANIZATION, APPLICATION)
 

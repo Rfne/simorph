@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "simorph"
-version = "0.2.0"
+version = "0.3.0"
 description = "Настольная среда калибровки бортовых конвейеров патрульного робота"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
@@ -20,7 +20,7 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-  "PyQt6>=6.12,<7",
+  "PySide6>=6.12,<7",
   "pybullet>=3.2.7,<4",
   "opencv-contrib-python>=5.1,<6",
   "numpy>=2.5,<3",
@@ -85,7 +85,7 @@ ignore_missing_imports = true
 minversion = "8.0"
 testpaths = ["tests"]
 addopts = "-ra --strict-markers --strict-config"
-qt_api = "pyqt6"
+qt_api = "pyside6"
 markers = [
   "unit: быстрые модульные тесты",
   "integration: тесты с процессами, файлами и внешними библиотеками",

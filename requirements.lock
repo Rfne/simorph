@@ -90,12 +90,21 @@ pydantic==2.14.4
     # via simorph (pyproject.toml)
 pydantic-core==2.50.5
     # via pydantic
-pyqt6==6.12.1
+pyside6==6.12.0
     # via simorph (pyproject.toml)
-pyqt6-qt6==6.12.0
-    # via pyqt6
-pyqt6-sip==13.13.1
-    # via pyqt6
+pyside6-addons==6.12.0
+    # via
+    #   pyside6
+    #   pyside6-webengine
+pyside6-essentials==6.12.0
+    # via
+    #   pyside6
+    #   pyside6-addons
+    #   pyside6-pdf
+pyside6-pdf==6.12.0.140
+    # via pyside6
+pyside6-webengine==6.12.0.140
+    # via pyside6
 python-dateutil==4.0.0
     # via pandas
 pyviz-comms==3.0.6
@@ -104,6 +113,8 @@ pyyaml==6.0.3
     # via bokeh
 requests==2.34.2
     # via panel
+shiboken6==6.12.0
+    # via pyside6-essentials
 sympy==1.14.0
     # via torch
 torch==2.15.0

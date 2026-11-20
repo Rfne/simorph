@@ -16,7 +16,16 @@ import platform
 import sqlite3
 from importlib import metadata
 
-__version__ = "0.1.0"
+
+def _own_version() -> str:
+    """Версия пакета из метаданных установки, чтобы не расходиться с pyproject."""
+    try:
+        return metadata.version("simorph")
+    except metadata.PackageNotFoundError:  # pragma: no cover - запуск без установки
+        return "0.0.0+unknown"
+
+
+__version__ = _own_version()
 
 #: Соответствие «ключ вывода → имя дистрибутива».
 DISTRIBUTIONS: dict[str, str] = {
@@ -41,16 +50,17 @@ def _distribution_version(distribution: str) -> str | None:
 
 
 def _qt_version() -> str | None:
-    """Версия Qt, с которой собран PyQt6.
+    """Версия Qt, с которой собран PySide6.
 
-    Импорт ``PyQt6.QtCore`` дешёвый и не пишет в stdout.
+    В PySide6 нет константы ``QT_VERSION_STR``, версия берётся из
+    ``QtCore.qVersion()``. Импорт ``QtCore`` дешёвый и не пишет в stdout.
     """
     try:
-        from PyQt6.QtCore import QT_VERSION_STR
+        from PySide6.QtCore import qVersion
     except Exception:
         return None
 
-    return str(QT_VERSION_STR)
+    return str(qVersion())
 
 
 def collect_versions() -> dict[str, str | None]:
