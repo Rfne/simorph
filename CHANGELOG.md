@@ -31,6 +31,16 @@
 - Golden-эталон `tests/golden/demo_project_v1.json` и ADR-0002 о формате
   проекта.
 
+### Изменено
+
+- CI закреплён на `ubuntu-24.04` (в `ubuntu-latest` переехал на 26.04, где нет
+  сборки Python 3.13.7), типы проверяются под Windows и Linux на обоих
+  раннерах.
+- Добавлен `.gitattributes` с `* text=auto eol=lf`: рабочая копия на любой ОС
+  получает LF, побайтовые проверки не зависят от `core.autocrlf`.
+- Платформенные ветки в `core/locking.py` разведены по `sys.platform`, чтобы
+  `mypy --strict` сходился и на Windows, и на Linux.
+
 ## [0.1.0] — 2026-11-20
 
 Этап 0 «Каркас и окружение».
