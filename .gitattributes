@@ -1,0 +1,22 @@
+# Единые переводы строк во всей рабочей копии на любой ОС.
+# Без этого core.autocrlf=true на Windows превращает файлы в CRLF и ломает
+# побайтовые проверки: G1-02 (open → save → open → save) и golden-эталон.
+* text=auto eol=lf
+
+# Бинарные форматы: git не должен трогать их содержимое.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.whl binary
+*.onnx binary
+*.rknn binary
+*.nbg binary
+*.npy binary
+*.npz binary
+*.parquet binary
+*.sqlite binary
+*.db binary
+*.zip binary

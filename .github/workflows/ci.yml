@@ -17,7 +17,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        # ubuntu-latest переехал на 26.04, где нет сборки Python 3.13.7
+        # в toolcache; 24.04 закреплён и соответствует NFR-COMP-02.
+        os: [windows-latest, ubuntu-24.04]
     env:
       QT_QPA_PLATFORM: offscreen
       PYTHONUTF8: "1"
