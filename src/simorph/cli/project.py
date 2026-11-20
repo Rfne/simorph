@@ -11,15 +11,19 @@ from typing import Any
 
 from simorph.cli.exit_codes import ExitCode
 from simorph.core.canonical import compute_hash, dump_document
-from simorph.core.errors import ProjectError, ProjectValidationError
+from simorph.core.errors import ProjectError, ProjectValidationError, StaleLockError
 from simorph.core.factory import new_project
 from simorph.core.issues import has_errors
+from simorph.core.locking import ProjectLock
 from simorph.core.migrations import migrate_payload
 from simorph.core.repository import read_json, save_project, write_text_atomic
 from simorph.core.validation import parse_document, validate_payload
 
 #: Имя файла проекта по умолчанию.
 DEFAULT_PROJECT_NAME = "project.json"
+
+#: Подсказка для флага снятия устаревшей блокировки.
+TAKEOVER_HELP = "снять устаревшую блокировку, оставленную завершившимся процессом"
 
 
 def add_common_options(parser: argparse.ArgumentParser) -> None:
@@ -41,6 +45,7 @@ def build_project_parser(subparsers: Any) -> None:
     new_parser.add_argument("--name", default=None, help="имя проекта (по умолчанию — имя файла)")
     new_parser.add_argument("--seed", type=int, default=42, help="seed мира и упражнения")
     new_parser.add_argument("--force", action="store_true", help="перезаписать существующий файл")
+    new_parser.add_argument("--takeover-lock", action="store_true", help=TAKEOVER_HELP)
 
     validate_parser = actions.add_parser("validate", help="проверить проект")
     add_common_options(validate_parser)
@@ -52,6 +57,7 @@ def build_project_parser(subparsers: Any) -> None:
     migrate_parser.add_argument(
         "--dry-run", action="store_true", help="показать шаги, не записывая файл"
     )
+    migrate_parser.add_argument("--takeover-lock", action="store_true", help=TAKEOVER_HELP)
 
     hash_parser = actions.add_parser("hash", help="напечатать sha256 конфигурации")
     add_common_options(hash_parser)
@@ -71,14 +77,36 @@ def _resolve_target(path: Path) -> Path:
     return path / DEFAULT_PROJECT_NAME if path.is_dir() else path
 
 
+def _acquire_lock(target: Path, *, takeover_stale: bool, logger: logging.Logger) -> ProjectLock:
+    """Захватывает блокировку проекта перед записью (G1-04).
+
+    Устаревшая блокировка не снимается молча: пользователь подтверждает
+    это флагом ``--takeover-lock``, иначе можно потерять чужую работу.
+    """
+    lock = ProjectLock(target)
+    try:
+        lock.acquire(takeover_stale=takeover_stale)
+    except StaleLockError as exc:
+        raise StaleLockError(
+            f"{exc}; снимите её флагом --takeover-lock", holder=exc.holder
+        ) from None
+    logger.debug("блокировка захвачена: %s", lock.path)
+    return lock
+
+
 def cmd_new(args: argparse.Namespace, *, as_json: bool, logger: logging.Logger) -> int:
     """Создаёт новый проект и сохраняет его на диск."""
     target = _resolve_target(Path(args.path))
-    if target.exists() and not args.force:
-        raise ProjectError(f"файл уже существует: {target} (используйте --force)")
+    lock = _acquire_lock(target, takeover_stale=bool(args.takeover_lock), logger=logger)
+    try:
+        if target.exists() and not args.force:
+            raise ProjectError(f"файл уже существует: {target} (используйте --force)")
 
-    document = new_project(args.name or target.stem or "project", seed=int(args.seed))
-    save_project(document, target, make_backup=target.exists())
+        document = new_project(args.name or target.stem or "project", seed=int(args.seed))
+        save_project(document, target, make_backup=target.exists())
+    finally:
+        lock.release()
+
     digest = compute_hash(document)
     logger.info("создан проект %s (%s)", target, digest)
 
@@ -148,14 +176,19 @@ def cmd_migrate(args: argparse.Namespace, *, as_json: bool, logger: logging.Logg
             _write(f"будут применены шаги: {', '.join(result.applied)}")
         return int(ExitCode.OK)
 
+    lock = _acquire_lock(target, takeover_stale=bool(args.takeover_lock), logger=logger)
     try:
-        document = parse_document(result.payload)
-    except ProjectValidationError as exc:
-        raise ProjectError(
-            "мигрированный проект не прошёл проверку схемы, файл не изменён"
-        ) from exc
+        try:
+            document = parse_document(result.payload)
+        except ProjectValidationError as exc:
+            raise ProjectError(
+                "мигрированный проект не прошёл проверку схемы, файл не изменён"
+            ) from exc
 
-    backup = write_text_atomic(target, dump_document(document), make_backup=True)
+        backup = write_text_atomic(target, dump_document(document), make_backup=True)
+    finally:
+        lock.release()
+
     logger.info("миграция применена: %s", ", ".join(result.applied))
 
     if as_json:

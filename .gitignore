@@ -51,6 +51,9 @@ logs/
 *.tmp
 *.bak
 
+# Временные lock-файлы офисных приложений (Word, Excel)
+~$*
+
 # ОС
 .DS_Store
 Thumbs.db

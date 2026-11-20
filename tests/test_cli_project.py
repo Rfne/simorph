@@ -10,6 +10,7 @@ import pytest
 from simorph.cli.exit_codes import ExitCode
 from simorph.cli.main import main
 from simorph.core.canonical import compute_hash
+from simorph.core.locking import ProjectLock, lock_path_for
 from simorph.core.repository import load_project
 
 
@@ -247,3 +248,99 @@ def test_new_accepts_directory_path(tmp_path: Path, capfd: pytest.CaptureFixture
 
     assert code == int(ExitCode.OK)
     assert (tmp_path / "project.json").exists()
+
+
+@pytest.mark.integration
+def test_new_releases_lock_after_write(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    target = tmp_path / "project.json"
+    main(["project", "new", str(target)])
+    capfd.readouterr()
+
+    assert not lock_path_for(target).exists()
+
+
+@pytest.mark.integration
+def test_new_is_blocked_by_live_lock(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    target = tmp_path / "project.json"
+    holder = ProjectLock(target)
+    holder.acquire()
+    try:
+        code = main(["project", "new", str(target), "--json"])
+        out, _ = capfd.readouterr()
+        report = json.loads(out)
+
+        assert code == int(ExitCode.DATA_ERROR)
+        assert report["status"] == "error"
+        assert "занят" in report["error"]
+        assert not target.exists()
+    finally:
+        holder.release()
+
+
+@pytest.mark.integration
+def test_new_requires_confirmation_for_stale_lock(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
+    target = tmp_path / "project.json"
+    lock_path_for(target).write_text(json.dumps({"pid": 999_999_999}), encoding="utf-8")
+
+    code = main(["project", "new", str(target)])
+    _, err = capfd.readouterr()
+
+    assert code == int(ExitCode.DATA_ERROR)
+    assert "--takeover-lock" in err
+    assert not target.exists()
+
+
+@pytest.mark.integration
+def test_new_takeover_lock_replaces_stale_file(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
+    target = tmp_path / "project.json"
+    lock_path_for(target).write_text(json.dumps({"pid": 999_999_999}), encoding="utf-8")
+
+    code = main(["project", "new", str(target), "--takeover-lock"])
+    capfd.readouterr()
+
+    assert code == int(ExitCode.OK)
+    assert target.exists()
+    assert not lock_path_for(target).exists()
+
+
+@pytest.mark.integration
+def test_migrate_is_blocked_by_live_lock(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    target = tmp_path / "legacy.json"
+    target.write_text(
+        json.dumps({"version": "0.9", "project_id": "x", "name": "l"}), encoding="utf-8"
+    )
+    before = target.read_bytes()
+
+    holder = ProjectLock(target)
+    holder.acquire()
+    try:
+        code = main(["project", "migrate", str(target)])
+        _, err = capfd.readouterr()
+
+        assert code == int(ExitCode.DATA_ERROR)
+        assert "занят" in err
+        assert target.read_bytes() == before
+    finally:
+        holder.release()
+
+
+@pytest.mark.integration
+def test_read_only_commands_ignore_lock(
+    project_path: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
+    holder = ProjectLock(project_path)
+    holder.acquire()
+    try:
+        validate_code = main(["project", "validate", str(project_path), "--json"])
+        capfd.readouterr()
+        hash_code = main(["project", "hash", str(project_path), "--json"])
+        capfd.readouterr()
+
+        assert validate_code == int(ExitCode.OK)
+        assert hash_code == int(ExitCode.OK)
+    finally:
+        holder.release()
