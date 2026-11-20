@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import NoReturn
 
 from simorph.cli.exit_codes import ExitCode
+from simorph.cli.project import build_project_parser, run_project_command
+from simorph.core.errors import SimorphError
 from simorph.logging_setup import configure_logging
 from simorph.version import collect_versions
 
@@ -80,6 +82,8 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="платформа Qt offscreen (CI без дисплея)",
     )
+
+    build_project_parser(subparsers)
 
     return parser
 
@@ -165,12 +169,27 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         if args.command == "version":
             return _cmd_version(as_json=as_json)
+        if args.command == "project":
+            return run_project_command(args, as_json=as_json, logger=logger)
         return _cmd_selftest(
             as_json=as_json,
             ui=bool(args.ui),
             offscreen=bool(args.offscreen),
             logger=logger,
         )
+    except SimorphError as exc:
+        logger.error("%s", exc)
+        issues = getattr(exc, "issues", None)
+        if as_json:
+            payload: dict[str, object] = {"status": "error", "error": str(exc)}
+            if issues:
+                payload["issues"] = [item.to_dict() for item in issues]
+            _write_json(payload)
+        else:
+            sys.stderr.write(f"simorph: {exc}\n")
+            for item in issues or ():
+                sys.stderr.write(f"  {item.path}: {item.message}\n")
+        return int(ExitCode.DATA_ERROR)
     except Exception:
         logger.exception("необработанная ошибка команды %s", args.command)
         if as_json:

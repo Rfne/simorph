@@ -48,6 +48,21 @@ simorph selftest --ui --offscreen   # Qt без дисплея (как в CI)
 Коды возврата: `0` — успех, `1` — ошибка данных или конфигурации,
 `2` — внутренняя ошибка. Лог пишется в stderr, JSON-lines — в `--log-file`.
 
+## Работа с проектом
+
+```bash
+simorph project new examples/demo/project.json --name demo   # создать
+simorph project validate examples/demo/project.json          # проверить
+simorph project migrate examples/demo/project.json           # мигрировать
+simorph project hash examples/demo/project.json              # sha256
+```
+
+`project.json` — один переносимый документ из семи разделов: `project`,
+`profile`, `world`, `agent`, `exercise`, `pipeline`, `report`. Неизвестные
+поля запрещены, у каждого раздела свой `schema_version`. Запись атомарная:
+рядом появляются `.bak` (предыдущая версия) и `.lock` (на время работы).
+Решение и последствия — `docs/adr/0002-project-json-document.md`.
+
 ## Разработка
 
 ```bash
@@ -65,12 +80,15 @@ pre-commit install
 
 ```
 src/simorph/
-  cli/          командная строка, коды возврата
+  cli/          командная строка, коды возврата, команды project
+  core/         схемы разделов, канонизация, миграции, репозиторий, валидатор
   selftest/     самопроверка окружения и Qt
   logging_setup.py  структурированное логирование, redaction
+  settings.py   настройки приложения в QSettings
   version.py    сбор версий из метаданных дистрибутивов
-tests/          unit, integration, ui
+tests/          unit, integration, ui, regression, golden
 scripts/        служебные скрипты (отчёт по лицензиям)
+examples/       демонстрационный проект
 docs/           TRD, WP, ADR
 ```
 

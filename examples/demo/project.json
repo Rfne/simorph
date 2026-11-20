@@ -1,0 +1,277 @@
+{
+  "agents": [
+    {
+      "actuators": [
+        {
+          "channels": null,
+          "id": "drive",
+          "joint": "wheel_fl_joint",
+          "max_force_n": null,
+          "max_speed_mps": null,
+          "max_speed_rad_s": 20.0,
+          "max_torque_nm": 8.0,
+          "range_deg": null,
+          "range_m": null,
+          "response_ms": null,
+          "type": "drive_axis"
+        }
+      ],
+      "agent_id": "NRTC-01",
+      "joints": [
+        {
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "child": "wheel_fl",
+          "id": "wheel_fl_joint",
+          "parent": "base",
+          "type": "continuous"
+        }
+      ],
+      "links": [
+        {
+          "id": "base",
+          "mass_kg": 45.0,
+          "pose": [
+            0.0,
+            0.0,
+            0.2
+          ],
+          "size_m": [
+            1.2,
+            0.8,
+            0.4
+          ],
+          "type": "box"
+        },
+        {
+          "id": "wheel_fl",
+          "mass_kg": 2.0,
+          "pose": [
+            0.4,
+            0.3,
+            0.1
+          ],
+          "size_m": [
+            0.2,
+            0.2,
+            0.1
+          ],
+          "type": "cylinder"
+        }
+      ],
+      "links_comm": [],
+      "role": "rover",
+      "schema_version": "1.0",
+      "sensors": [
+        {
+          "baseline_m": 0.12,
+          "bit_depth": 8,
+          "fov_deg": 90.0,
+          "id": "cam_stereo",
+          "latency_ms": null,
+          "link": "base",
+          "mode": "mono",
+          "noise": null,
+          "range_m": null,
+          "rate_hz": 120.0,
+          "resolution": [
+            1280,
+            800
+          ],
+          "type": "stereo_camera"
+        }
+      ]
+    }
+  ],
+  "created_at": "2026-11-20T14:44:23Z",
+  "exercises": [
+    {
+      "agents": [
+        "NRTC-01"
+      ],
+      "exercise_id": "EX-01",
+      "missions": [
+        {
+          "agent_id": "NRTC-01",
+          "elements": [
+            {
+              "condition": null,
+              "duration_s": null,
+              "id": "start",
+              "iterations": null,
+              "next": [
+                "ret-1"
+              ],
+              "pose": null,
+              "priority": null,
+              "sensor": null,
+              "speed_mps": null,
+              "ttl_s": null,
+              "type": "start",
+              "zone": null
+            },
+            {
+              "condition": null,
+              "duration_s": null,
+              "id": "ret-1",
+              "iterations": null,
+              "next": [],
+              "pose": null,
+              "priority": null,
+              "sensor": null,
+              "speed_mps": null,
+              "ttl_s": null,
+              "type": "return_to_base",
+              "zone": null
+            }
+          ],
+          "mission_id": "M-01"
+        }
+      ],
+      "schema_version": "1.0",
+      "seed": 42,
+      "world_id": "W-01"
+    }
+  ],
+  "name": "demo",
+  "pipelines": [
+    {
+      "edges": [
+        {
+          "from": "src.frame",
+          "to": "sink.events"
+        }
+      ],
+      "kind": "computational",
+      "nodes": [
+        {
+          "budget_ms": null,
+          "id": "src",
+          "params": {
+            "camera": "cam_stereo",
+            "fps": 120
+          },
+          "type": "source.frame"
+        },
+        {
+          "budget_ms": null,
+          "id": "sink",
+          "params": {
+            "topic": "events"
+          },
+          "type": "sink.events"
+        }
+      ],
+      "pipeline_id": "PIPE-CMP-01",
+      "schema_version": "1.0",
+      "variant": null
+    }
+  ],
+  "profile": {
+    "customer": null,
+    "parameters": [
+      {
+        "class": "M",
+        "comment": null,
+        "id": "П-01",
+        "range": null,
+        "source": "project new",
+        "target": null,
+        "unit": null,
+        "value": "demo"
+      }
+    ],
+    "schema_version": "1.0"
+  },
+  "project_id": "d86c0a4c-3b28-410c-b570-371c8170f156",
+  "reports": [
+    {
+      "export": [
+        "md"
+      ],
+      "metrics": [],
+      "pipeline_ids": [
+        "PIPE-CMP-01"
+      ],
+      "report_id": "REP-01",
+      "schema_version": "1.0",
+      "sections": [
+        "metadata",
+        "config",
+        "metrics",
+        "plots",
+        "conclusions"
+      ],
+      "template": "templates/run_report.j2",
+      "thresholds": {}
+    }
+  ],
+  "schema_version": "1.0",
+  "settings": {
+    "language": "ru",
+    "offline": true,
+    "theme": "dark"
+  },
+  "transport": {
+    "domain_id": 0,
+    "mode": "inproc"
+  },
+  "updated_at": "2026-11-20T14:44:23Z",
+  "world": {
+    "buildings": [],
+    "equipment": [],
+    "lighting": {
+      "cloudiness": 0.0,
+      "sun_azimuth_deg": 135.0,
+      "sun_elevation_deg": 40.0
+    },
+    "schema_version": "1.0",
+    "seed": 42,
+    "terrain": {
+      "elevation_m": [
+        0.0,
+        12.0
+      ],
+      "mesh": null,
+      "size_m": [
+        2000.0,
+        2000.0
+      ]
+    },
+    "trees": [],
+    "water": [],
+    "wind": {
+      "direction_deg": 0.0,
+      "gust_model": "none",
+      "speed_mps": 0.0
+    },
+    "world_id": "W-01",
+    "zones": [
+      {
+        "id": "Z-01",
+        "kind": "tech",
+        "polygon": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            500.0,
+            0.0
+          ],
+          [
+            500.0,
+            400.0
+          ],
+          [
+            0.0,
+            400.0
+          ]
+        ]
+      }
+    ]
+  }
+}
