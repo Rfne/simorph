@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import os
 import socket
+import sys
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -26,30 +27,46 @@ def _now_iso() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
-def process_alive(pid: int) -> bool:
-    """Проверяет, существует ли процесс с данным ``pid`` на этой машине."""
-    if pid <= 0:
-        return False
-    if os.name == "nt":  # pragma: no cover - ветка Windows
+if sys.platform == "win32":  # pragma: no cover - ветка Windows
+
+    def _process_alive_impl(pid: int) -> bool:
+        """Windows: ждём объект процесса, не блокируясь."""
         import ctypes
 
         synchronize = 0x00100000
+        still_active = 0x00000102
         kernel32 = ctypes.windll.kernel32
         handle = kernel32.OpenProcess(synchronize, False, pid)
         if not handle:
             return False
         try:
-            still_active = 0x00000102
             return bool(kernel32.WaitForSingleObject(handle, 0) == still_active)
         finally:
             kernel32.CloseHandle(handle)
-    try:  # pragma: no cover - ветка POSIX
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
+
+else:  # pragma: no cover - ветка POSIX
+
+    def _process_alive_impl(pid: int) -> bool:
+        """POSIX: сигнал 0 проверяет существование процесса."""
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True
         return True
-    return True
+
+
+def process_alive(pid: int) -> bool:
+    """Проверяет, существует ли процесс с данным ``pid`` на этой машине.
+
+    Реализация выбирается по ``sys.platform`` на уровне модуля: только так
+    mypy отбрасывает недоступную платформе ветку, и типы сходятся одинаково
+    на Windows и на Linux.
+    """
+    if pid <= 0:
+        return False
+    return _process_alive_impl(pid)
 
 
 @dataclass(frozen=True, slots=True)

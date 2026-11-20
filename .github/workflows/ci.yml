@@ -56,7 +56,12 @@ jobs:
           ruff format --check .
 
       - name: Type check
-        run: mypy
+        # Обе платформы проверяются на каждом раннере: платформенные ветки
+        # (ctypes.windll, os.kill) иначе ловятся только на одной ОС.
+        run: |
+          mypy
+          mypy --platform linux
+          mypy --platform win32
 
       - name: Tests
         run: pytest --cov=simorph --cov-report=term-missing --cov-report=xml
