@@ -37,6 +37,7 @@ from simorph.core.models.project import ProjectDocument
 from simorph.core.validation import validate_document
 from simorph.settings import THEMES, ApplicationSettings
 from simorph.ui import theme
+from simorph.ui.agent_view import AgentView
 from simorph.ui.commands import DocumentStore
 from simorph.ui.inspector import InspectorPanel
 from simorph.ui.profile_editor import ProfileEditor
@@ -48,7 +49,7 @@ from simorph.ui.tabs import EditorTabs
 from simorph.ui.tree_model import PATH_ROLE, ProjectTreeModel
 from simorph.ui.validation_panel import ValidationPanel
 
-__all__ = ["SCENE_KEY", "SCENE_TITLE", "SECTION_TITLES", "MainWindow"]
+__all__ = ["AGENT_KEY", "AGENT_TITLE", "SCENE_KEY", "SCENE_TITLE", "SECTION_TITLES", "MainWindow"]
 
 #: Заголовки вкладок разделов.
 SECTION_TITLES: dict[str, str] = {
@@ -63,6 +64,10 @@ SECTION_TITLES: dict[str, str] = {
 #: Ключ и заголовок вкладки 3D-сцены: это не раздел, а вид мира.
 SCENE_KEY = "scene"
 SCENE_TITLE = "3D-сцена"
+
+#: Ключ и заголовок вкладки агента: состав и предпросмотр.
+AGENT_KEY = "agent"
+AGENT_TITLE = "Агент"
 
 #: Интервал автосохранения, мс.
 AUTOSAVE_INTERVAL_MS = 30_000
@@ -205,6 +210,11 @@ class MainWindow(QMainWindow):
         self.action_scene.setToolTip("Обзор мира: орбита, зум, освещение, снимок")
         self.action_scene.triggered.connect(lambda: self.open_scene())
 
+        self.action_agent = QAction(AGENT_TITLE, self)
+        self.action_agent.setShortcut(QKeySequence("F7"))
+        self.action_agent.setToolTip("Состав агента и 3D-предпросмотр")
+        self.action_agent.triggered.connect(lambda: self.open_agent())
+
         self._theme_group = QActionGroup(self)
         self._theme_actions: dict[str, QAction] = {}
         for name in THEMES:
@@ -246,6 +256,7 @@ class MainWindow(QMainWindow):
         project_menu.addAction(self.action_validate)
         project_menu.addAction(self.action_search)
         project_menu.addAction(self.action_scene)
+        project_menu.addAction(self.action_agent)
 
         self._rebuild_recent_menu()
 
@@ -262,6 +273,7 @@ class MainWindow(QMainWindow):
         toolbar.addSeparator()
         toolbar.addAction(self.action_validate)
         toolbar.addAction(self.action_scene)
+        toolbar.addAction(self.action_agent)
 
         self._filter_edit = QLineEdit()
         self._filter_edit.setPlaceholderText("фильтр дерева")
@@ -331,6 +343,9 @@ class MainWindow(QMainWindow):
         scene = self._section_editors.get(SCENE_KEY)
         if isinstance(scene, SceneView):
             scene.rebuild(self._store.document)
+        agent = self._section_editors.get(AGENT_KEY)
+        if isinstance(agent, AgentView):
+            agent.rebuild(self._store.document)
 
     def _refresh_issues(self) -> None:
         self._issues = validate_document(self._store.document)
@@ -407,6 +422,12 @@ class MainWindow(QMainWindow):
         view = self._section_editors.get(SCENE_KEY)
         return view if isinstance(view, SceneView) else None
 
+    @property
+    def agent_view(self) -> AgentView | None:
+        """Открытый вид агента или ``None``."""
+        view = self._section_editors.get(AGENT_KEY)
+        return view if isinstance(view, AgentView) else None
+
     # --- навигация -------------------------------------------------------
 
     def navigate_to(self, path: str) -> None:
@@ -454,6 +475,7 @@ class MainWindow(QMainWindow):
             for section in SECTION_TITLES
         }
         factories[SCENE_KEY] = lambda: (SCENE_TITLE, self._make_scene_view())
+        factories[AGENT_KEY] = lambda: (AGENT_TITLE, self._make_agent_view())
         return factories
 
     def _make_section(self, section: str) -> QWidget:
@@ -481,10 +503,23 @@ class MainWindow(QMainWindow):
             return existing
         return self._tabs.open_editor(SCENE_KEY, SCENE_TITLE, self._make_scene_view())
 
+    def _make_agent_view(self) -> AgentView:
+        view = AgentView(self._store.document, self._settings)
+        self._section_editors[AGENT_KEY] = view
+        return view
+
+    def open_agent(self) -> int:
+        """Открывает вкладку агента или активирует уже открытую."""
+        existing = self._tabs.index_of(AGENT_KEY)
+        if existing >= 0:
+            self._tabs.setCurrentIndex(existing)
+            return existing
+        return self._tabs.open_editor(AGENT_KEY, AGENT_TITLE, self._make_agent_view())
+
     def _on_editor_closed(self, key: str) -> None:
         """Закрытая вкладка отписывается от документа и освобождает сцену."""
         editor = self._section_editors.pop(key, None)
-        if isinstance(editor, (ProfileEditor, SceneView)):
+        if isinstance(editor, (AgentView, ProfileEditor, SceneView)):
             editor.dispose()
 
     def restore_layout(self) -> int:

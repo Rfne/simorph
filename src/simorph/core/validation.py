@@ -11,6 +11,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from simorph.core.agent.validation import agent_issues
 from simorph.core.errors import ProjectValidationError, UnsupportedVersionError
 from simorph.core.issues import (
     Issue,
@@ -132,6 +133,12 @@ def _check_agent(agent_index: int, document: ProjectDocument) -> list[Issue]:
                     f"сустав {actuator.joint!r} не найден в joints",
                 )
             )
+    # Физическая согласованность и целостность дерева: ссылки уже проверены
+    # выше, поэтому из общего набора берутся только новые классы замечаний.
+    for item in agent_issues(agent, index=agent_index):
+        if item.code is IssueCode.DANGLING_REFERENCE:
+            continue
+        issues.append(item)
     return issues
 
 

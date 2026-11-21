@@ -4,19 +4,87 @@
       "actuators": [
         {
           "channels": null,
+          "gimbal_deg": null,
           "id": "drive",
           "joint": "wheel_fl_joint",
+          "joints": null,
+          "lengths_m": null,
+          "levels": null,
           "max_force_n": null,
+          "max_speed_dps": null,
           "max_speed_mps": null,
           "max_speed_rad_s": 20.0,
           "max_torque_nm": 8.0,
           "range_deg": null,
           "range_m": null,
           "response_ms": null,
+          "thrust_max_n": null,
           "type": "drive_axis"
         }
       ],
       "agent_id": "NRTC-01",
+      "hw": {
+        "tc_cmp": {
+          "command_queue_limit": 64,
+          "cpu_budget_ms": 4.0,
+          "frame_buffer_frames": 4,
+          "gpu_budget_ms": 6.0,
+          "heavy_light_threshold_ms": 3.0,
+          "pid_roll_pitch": [
+            0.8,
+            0.05,
+            0.2
+          ],
+          "pid_yaw": [
+            1.2,
+            0.02,
+            0.3
+          ],
+          "planning_rate_hz": 20.0,
+          "stabilization_rate_hz": 200.0
+        },
+        "tc_com": {
+          "bandwidth_mbps": 200.0,
+          "base_latency_ms": 5.0,
+          "link_timeout_ms": 1000.0,
+          "mtu_bytes": 1500,
+          "retransmit_buffer": 32
+        },
+        "tc_dyn": {
+          "drag_coefficient": 0.35,
+          "inertia_kg_m2": [
+            1.6,
+            2.4,
+            3.2
+          ],
+          "mass_kg": 47.0,
+          "max_angular_rate_rad_s": 1.0,
+          "max_linear_accel_mps2": 1.2,
+          "max_linear_speed_mps": 2.5,
+          "max_thrust_n": 40.0,
+          "motor_arm_m": 0.25,
+          "motor_time_constant_s": 0.05
+        },
+        "tc_ene": {
+          "battery_capacity_wh": 99.0,
+          "critical_charge_pct": 20.0,
+          "hover_power_w": 220.0,
+          "max_thrust_power_w": 520.0,
+          "onboard_computer_power_w": 25.0
+        },
+        "tc_sen": {
+          "accel_noise_mps2": 0.02,
+          "camera_fov_deg": 90.0,
+          "camera_fps": 120.0,
+          "camera_resolution": [
+            1280,
+            800
+          ],
+          "detection_range_m": 60.0,
+          "gyro_noise_rad_s": 0.002,
+          "sensor_latency_ms": 5.0
+        }
+      },
       "joints": [
         {
           "axis": [
@@ -50,9 +118,9 @@
           "id": "wheel_fl",
           "mass_kg": 2.0,
           "pose": [
-            0.4,
-            0.3,
-            0.1
+            0.7,
+            0.45,
+            -0.05
           ],
           "size_m": [
             0.2,
@@ -67,20 +135,29 @@
       "schema_version": "1.0",
       "sensors": [
         {
+          "accuracy_m": null,
+          "active_level": null,
           "baseline_m": 0.12,
+          "bias": null,
           "bit_depth": 8,
+          "channels": null,
+          "exposure_us": null,
           "fov_deg": 90.0,
           "id": "cam_stereo",
           "latency_ms": null,
+          "levels": null,
           "link": "base",
           "mode": "mono",
           "noise": null,
+          "range_deg": null,
+          "range_dps": null,
           "range_m": null,
           "rate_hz": 120.0,
           "resolution": [
             1280,
             800
           ],
+          "sync": null,
           "type": "stereo_camera"
         }
       ]

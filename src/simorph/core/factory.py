@@ -9,7 +9,14 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
-from simorph.core.models.agent import Actuator, AgentSection, Joint, Link, Sensor
+from simorph.core.models.agent import (
+    Actuator,
+    AgentSection,
+    HardwareConstants,
+    Joint,
+    Link,
+    Sensor,
+)
 from simorph.core.models.exercise import ExerciseSection, Mission, MissionElement
 from simorph.core.models.pipeline import PipelineEdge, PipelineNode, PipelineSection
 from simorph.core.models.profile import ProfileParameter, ProfileSection
@@ -74,6 +81,29 @@ def build_world(seed: int) -> WorldSection:
 
 def build_agent() -> AgentSection:
     """Агент-ровер: корпус, ведущее колесо и стереокамера."""
+    base = HardwareConstants()
+    hw = base.model_copy(
+        update={
+            "tc_dyn": base.tc_dyn.model_copy(
+                update={
+                    "mass_kg": 47.0,
+                    "inertia_kg_m2": (1.6, 2.4, 3.2),
+                    "max_linear_speed_mps": 2.5,
+                    "max_linear_accel_mps2": 1.2,
+                    "max_angular_rate_rad_s": 1.0,
+                }
+            ),
+            "tc_cmp": base.tc_cmp.model_copy(
+                update={
+                    "cpu_budget_ms": 4.0,
+                    "gpu_budget_ms": 6.0,
+                    "stabilization_rate_hz": 200.0,
+                    "heavy_light_threshold_ms": 3.0,
+                }
+            ),
+            "tc_com": base.tc_com.model_copy(update={"bandwidth_mbps": 200.0}),
+        }
+    )
     return AgentSection(
         schema_version=CURRENT_VERSION,
         agent_id=DEMO_AGENT_ID,
@@ -85,7 +115,7 @@ def build_agent() -> AgentSection:
                 type="cylinder",
                 size_m=(0.2, 0.2, 0.1),
                 mass_kg=2.0,
-                pose=(0.4, 0.3, 0.1),
+                pose=(0.7, 0.45, -0.05),
             ),
         ],
         joints=[
@@ -119,6 +149,7 @@ def build_agent() -> AgentSection:
                 max_torque_nm=8.0,
             )
         ],
+        hw=hw,
     )
 
 

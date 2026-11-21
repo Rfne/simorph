@@ -1,0 +1,73 @@
+{
+  "camera": {
+    "distance": 823.5294117647059,
+    "fov_deg": 60.0,
+    "pitch_deg": -51.99999999999994,
+    "target": [
+      0.0,
+      0.0,
+      6.0
+    ],
+    "yaw_deg": 42.20000000000011
+  },
+  "depth_max": 1000.0,
+  "depth_min": 572.289,
+  "pose": {
+    "eye": [
+      -375.5992887935886,
+      -340.5726380240587,
+      654.9500323820058
+    ],
+    "target": [
+      0.0,
+      0.0,
+      6.0
+    ],
+    "up": [
+      0.0,
+      0.0,
+      1.0
+    ]
+  },
+  "scene": {
+    "bodies": 163,
+    "build_seconds": 0.0862,
+    "by_category": {
+      "building": 2,
+      "equipment": 3,
+      "terrain": 7,
+      "tree": 150,
+      "water": 0,
+      "zone": 1
+    },
+    "error": null,
+    "limit": 1000,
+    "objects": 163,
+    "status": "ready",
+    "truncated": 0,
+    "warnings": 0
+  },
+  "seed": 42,
+  "sensor": {
+    "baseline_m": 0.12,
+    "far": 1000.0,
+    "fov_deg": 60.0,
+    "height": 480,
+    "mode": "mono",
+    "near": 0.1,
+    "width": 640
+  },
+  "sun": {
+    "azimuth_deg": 135.0,
+    "elevation_deg": 40.0,
+    "phase": "day"
+  },
+  "weather": {
+    "direction_deg": 0.0,
+    "gust_model": "none",
+    "precipitation": "none",
+    "speed_mps": 0.0,
+    "vibration_amplitude_m": 0.0
+  },
+  "world_id": "W-01"
+}
