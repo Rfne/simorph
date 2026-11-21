@@ -40,6 +40,7 @@ from simorph.ui import theme
 from simorph.ui.agent_view import AgentView
 from simorph.ui.commands import DocumentStore
 from simorph.ui.inspector import InspectorPanel
+from simorph.ui.mission_view import MissionView
 from simorph.ui.profile_editor import ProfileEditor
 from simorph.ui.scene_view import SceneView
 from simorph.ui.search_panel import SearchPanel
@@ -49,7 +50,16 @@ from simorph.ui.tabs import EditorTabs
 from simorph.ui.tree_model import PATH_ROLE, ProjectTreeModel
 from simorph.ui.validation_panel import ValidationPanel
 
-__all__ = ["AGENT_KEY", "AGENT_TITLE", "SCENE_KEY", "SCENE_TITLE", "SECTION_TITLES", "MainWindow"]
+__all__ = [
+    "AGENT_KEY",
+    "AGENT_TITLE",
+    "MISSION_KEY",
+    "MISSION_TITLE",
+    "SCENE_KEY",
+    "SCENE_TITLE",
+    "SECTION_TITLES",
+    "MainWindow",
+]
 
 #: Заголовки вкладок разделов.
 SECTION_TITLES: dict[str, str] = {
@@ -68,6 +78,10 @@ SCENE_TITLE = "3D-сцена"
 #: Ключ и заголовок вкладки агента: состав и предпросмотр.
 AGENT_KEY = "agent"
 AGENT_TITLE = "Агент"
+
+#: Ключ и заголовок вкладки миссии: граф, элемент и тайминги.
+MISSION_KEY = "mission"
+MISSION_TITLE = "Миссия"
 
 #: Интервал автосохранения, мс.
 AUTOSAVE_INTERVAL_MS = 30_000
@@ -215,6 +229,11 @@ class MainWindow(QMainWindow):
         self.action_agent.setToolTip("Состав агента и 3D-предпросмотр")
         self.action_agent.triggered.connect(lambda: self.open_agent())
 
+        self.action_mission = QAction(MISSION_TITLE, self)
+        self.action_mission.setShortcut(QKeySequence("F8"))
+        self.action_mission.setToolTip("Граф миссии, элемент и тайминги")
+        self.action_mission.triggered.connect(lambda: self.open_mission())
+
         self._theme_group = QActionGroup(self)
         self._theme_actions: dict[str, QAction] = {}
         for name in THEMES:
@@ -257,6 +276,7 @@ class MainWindow(QMainWindow):
         project_menu.addAction(self.action_search)
         project_menu.addAction(self.action_scene)
         project_menu.addAction(self.action_agent)
+        project_menu.addAction(self.action_mission)
 
         self._rebuild_recent_menu()
 
@@ -274,6 +294,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.action_validate)
         toolbar.addAction(self.action_scene)
         toolbar.addAction(self.action_agent)
+        toolbar.addAction(self.action_mission)
 
         self._filter_edit = QLineEdit()
         self._filter_edit.setPlaceholderText("фильтр дерева")
@@ -346,6 +367,9 @@ class MainWindow(QMainWindow):
         agent = self._section_editors.get(AGENT_KEY)
         if isinstance(agent, AgentView):
             agent.rebuild(self._store.document)
+        mission = self._section_editors.get(MISSION_KEY)
+        if isinstance(mission, MissionView):
+            mission.rebuild(self._store.document)
 
     def _refresh_issues(self) -> None:
         self._issues = validate_document(self._store.document)
@@ -428,6 +452,12 @@ class MainWindow(QMainWindow):
         view = self._section_editors.get(AGENT_KEY)
         return view if isinstance(view, AgentView) else None
 
+    @property
+    def mission_view(self) -> MissionView | None:
+        """Открытый редактор миссии или ``None``."""
+        view = self._section_editors.get(MISSION_KEY)
+        return view if isinstance(view, MissionView) else None
+
     # --- навигация -------------------------------------------------------
 
     def navigate_to(self, path: str) -> None:
@@ -476,6 +506,7 @@ class MainWindow(QMainWindow):
         }
         factories[SCENE_KEY] = lambda: (SCENE_TITLE, self._make_scene_view())
         factories[AGENT_KEY] = lambda: (AGENT_TITLE, self._make_agent_view())
+        factories[MISSION_KEY] = lambda: (MISSION_TITLE, self._make_mission_view())
         return factories
 
     def _make_section(self, section: str) -> QWidget:
@@ -516,10 +547,23 @@ class MainWindow(QMainWindow):
             return existing
         return self._tabs.open_editor(AGENT_KEY, AGENT_TITLE, self._make_agent_view())
 
+    def _make_mission_view(self) -> MissionView:
+        view = MissionView(self._store, self._settings)
+        self._section_editors[MISSION_KEY] = view
+        return view
+
+    def open_mission(self) -> int:
+        """Открывает вкладку миссии или активирует уже открытую."""
+        existing = self._tabs.index_of(MISSION_KEY)
+        if existing >= 0:
+            self._tabs.setCurrentIndex(existing)
+            return existing
+        return self._tabs.open_editor(MISSION_KEY, MISSION_TITLE, self._make_mission_view())
+
     def _on_editor_closed(self, key: str) -> None:
         """Закрытая вкладка отписывается от документа и освобождает сцену."""
         editor = self._section_editors.pop(key, None)
-        if isinstance(editor, (AgentView, ProfileEditor, SceneView)):
+        if isinstance(editor, (AgentView, MissionView, ProfileEditor, SceneView)):
             editor.dispose()
 
     def restore_layout(self) -> int:

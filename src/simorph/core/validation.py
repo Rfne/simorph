@@ -21,6 +21,7 @@ from simorph.core.issues import (
     issue,
     issues_from_validation_error,
 )
+from simorph.core.mission.validation import exercise_issues
 from simorph.core.models.project import ProjectDocument
 from simorph.core.schema_version import CURRENT_VERSION, is_current, is_from_future, is_known
 
@@ -142,187 +143,16 @@ def _check_agent(agent_index: int, document: ProjectDocument) -> list[Issue]:
     return issues
 
 
-def _check_mission(
-    prefix: str,
-    elements: Sequence[Any],
-    agent_sensor_ids: dict[str, set[str]],
-    zone_ids: set[str],
-    mission_agent: str,
-) -> list[Issue]:
-    """Проверяет ссылки внутри миссии и структуру её графа."""
-    issues = _duplicates(
-        [(f"{prefix}.elements.{i}.id", item.id) for i, item in enumerate(elements)]
-    )
-    element_ids = {item.id for item in elements}
-
-    for index, element in enumerate(elements):
-        base = f"{prefix}.elements.{index}"
-        for target in element.next:
-            if target not in element_ids:
-                issues.append(
-                    issue(
-                        IssueCode.DANGLING_REFERENCE,
-                        f"{base}.next",
-                        f"элемент {target!r} не найден в миссии",
-                    )
-                )
-        if element.zone is not None and element.zone not in zone_ids:
-            issues.append(
-                issue(
-                    IssueCode.DANGLING_REFERENCE,
-                    f"{base}.zone",
-                    f"зона {element.zone!r} не найдена в world.zones",
-                )
-            )
-        if element.sensor is not None:
-            sensors = agent_sensor_ids.get(mission_agent, set())
-            if element.sensor not in sensors:
-                issues.append(
-                    issue(
-                        IssueCode.DANGLING_REFERENCE,
-                        f"{base}.sensor",
-                        f"сенсор {element.sensor!r} не найден у агента {mission_agent!r}",
-                    )
-                )
-
-    starts = [index for index, element in enumerate(elements) if element.type == "start"]
-    if len(starts) != 1:
-        issues.append(
-            issue(
-                IssueCode.INVALID_GRAPH,
-                f"{prefix}.elements",
-                "в миссии должен быть ровно один элемент 'start'",
-            )
-        )
-
-    issues += _mission_cycle_issues(prefix, elements)
-    issues += _mission_reachability_issues(prefix, elements)
-    return issues
-
-
-def _mission_cycle_issues(prefix: str, elements: Sequence[Any]) -> list[Issue]:
-    """Цикл в миссии допустим только через элемент ``loop``."""
-    by_id = {item.id: item for item in elements}
-    state: dict[str, int] = {}
-    offenders: set[str] = set()
-
-    def visit(node_id: str, path: list[str]) -> None:
-        state[node_id] = 1
-        path.append(node_id)
-        node = by_id.get(node_id)
-        if node is not None:
-            for target in node.next:
-                if target not in by_id:
-                    continue
-                if state.get(target) == 1:
-                    if node.type != "loop" and target in path:
-                        offenders.update(path[path.index(target) :])
-                elif state.get(target, 0) == 0:
-                    visit(target, path)
-        path.pop()
-        state[node_id] = 2
-
-    for item in elements:
-        if state.get(item.id, 0) == 0:
-            visit(item.id, [])
-
-    index_by_id = {item.id: index for index, item in enumerate(elements)}
-    return [
-        issue(
-            IssueCode.INVALID_GRAPH,
-            f"{prefix}.elements.{index_by_id[name]}.next",
-            "цикл допустим только через элемент 'loop'",
-        )
-        for name in sorted(offenders, key=lambda value: index_by_id[value])
-    ]
-
-
-def _mission_reachability_issues(prefix: str, elements: Sequence[Any]) -> list[Issue]:
-    """Элемент, недостижимый из ``start``, — предупреждение, а не ошибка."""
-    by_id = {item.id: item for item in elements}
-    reached: set[str] = set()
-    stack = [item.id for item in elements if item.type == "start"]
-    while stack:
-        node_id = stack.pop()
-        if node_id in reached:
-            continue
-        reached.add(node_id)
-        node = by_id.get(node_id)
-        if node is not None:
-            stack.extend(target for target in node.next if target in by_id)
-
-    return [
-        issue(
-            IssueCode.INVALID_GRAPH,
-            f"{prefix}.elements.{index}",
-            f"элемент {element.id!r} недостижим из 'start'",
-            severity=Severity.WARNING,
-        )
-        for index, element in enumerate(elements)
-        if element.id not in reached
-    ]
-
-
 def _check_exercises(document: ProjectDocument) -> list[Issue]:
+    """Связи упражнения и граф каждой миссии — в отдельном валидаторе."""
     issues: list[Issue] = []
-    agent_ids = {agent.agent_id for agent in document.agents}
-    agent_sensor_ids = {
-        agent.agent_id: {sensor.id for sensor in agent.sensors} for agent in document.agents
-    }
-    zone_ids = {zone.id for zone in document.world.zones}
-
     for exercise_index, exercise in enumerate(document.exercises):
-        prefix = f"exercises.{exercise_index}"
-        if exercise.world_id != document.world.world_id:
-            issues.append(
-                issue(
-                    IssueCode.DANGLING_REFERENCE,
-                    f"{prefix}.world_id",
-                    f"мир {exercise.world_id!r} не совпадает с world.world_id "
-                    f"{document.world.world_id!r}",
-                )
-            )
-        for agent_index, agent_id in enumerate(exercise.agents):
-            if agent_id not in agent_ids:
-                issues.append(
-                    issue(
-                        IssueCode.DANGLING_REFERENCE,
-                        f"{prefix}.agents.{agent_index}",
-                        f"агент {agent_id!r} не найден в agents",
-                    )
-                )
-        issues += _duplicates(
-            [
-                (f"{prefix}.missions.{i}.mission_id", item.mission_id)
-                for i, item in enumerate(exercise.missions)
-            ]
+        issues += exercise_issues(
+            exercise,
+            world=document.world,
+            agents=document.agents,
+            prefix=f"exercises.{exercise_index}",
         )
-
-        for mission_index, mission in enumerate(exercise.missions):
-            mission_prefix = f"{prefix}.missions.{mission_index}"
-            if mission.agent_id not in agent_ids:
-                issues.append(
-                    issue(
-                        IssueCode.DANGLING_REFERENCE,
-                        f"{mission_prefix}.agent_id",
-                        f"агент {mission.agent_id!r} не найден в agents",
-                    )
-                )
-            elif mission.agent_id not in exercise.agents:
-                issues.append(
-                    issue(
-                        IssueCode.DANGLING_REFERENCE,
-                        f"{mission_prefix}.agent_id",
-                        f"агент {mission.agent_id!r} не указан в agents упражнения",
-                    )
-                )
-            issues += _check_mission(
-                mission_prefix,
-                mission.elements,
-                agent_sensor_ids,
-                zone_ids,
-                mission.agent_id,
-            )
     return issues
 
 

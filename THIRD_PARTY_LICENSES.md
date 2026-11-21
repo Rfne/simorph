@@ -76,12 +76,13 @@ PySide6, лицензия LGPLv3 (двойная: LGPL-3.0 / GPL-2.0 / GPL-3.0, 
 | requests | 2.34.2 | Apache Software License |
 | ruff | 0.17.6 | MIT |
 | shiboken6 | 6.12.0 | LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only |
-| simorph | 0.3.0 | MIT |
-| simorph | 0.3.0 | MIT |
+| simorph | 0.8.0 | MIT |
+| simorph | 0.8.0 | MIT |
 | sympy | 1.14.0 | BSD License |
 | torch | 2.15.0 | Apache-2.0 AND Apache-2.0 WITH LLVM-exception AND BSD-2-Clause AND BSD-3-Clause AND BSL-1.0 AND ISC AND MIT AND Zlib |
 | tornado | 6.6.1 | Apache Software License |
 | tqdm | 4.70.1 | MPL-2.0 AND MIT |
+| types-PyYAML | 6.0.12.20261113 | Apache-2.0 |
 | typing-inspection | 0.4.5 | MIT |
 | typing_extensions | 4.16.0 | PSF-2.0 |
 | tzdata | 2026.6 | Apache-2.0 |

@@ -12,6 +12,7 @@ from typing import NoReturn
 
 from simorph.cli.agent import build_agent_parser, run_agent_command
 from simorph.cli.exit_codes import ExitCode
+from simorph.cli.mission import build_mission_parser, run_mission_command
 from simorph.cli.profile import build_profile_parser, run_profile_command
 from simorph.cli.project import build_project_parser, run_project_command
 from simorph.cli.world import build_world_parser, run_world_command
@@ -90,6 +91,7 @@ def build_parser() -> argparse.ArgumentParser:
     build_profile_parser(subparsers)
     build_world_parser(subparsers)
     build_agent_parser(subparsers)
+    build_mission_parser(subparsers)
 
     app_command = subparsers.add_parser("app", help="открыть графическую оболочку")
     _add_common_options(app_command)
@@ -198,6 +200,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return run_world_command(args, as_json=as_json, logger=logger)
         if args.command == "agent":
             return run_agent_command(args, as_json=as_json, logger=logger)
+        if args.command == "mission":
+            return run_mission_command(args, as_json=as_json, logger=logger)
         if args.command == "app":
             from simorph.ui.app import run_app
 

@@ -183,6 +183,7 @@ pyyaml==6.0.3
     # via
     #   bokeh
     #   pre-commit
+    #   simorph (pyproject.toml)
 requests==2.34.2
     # via panel
 ruff==0.17.6
@@ -197,6 +198,8 @@ tornado==6.6.1
     # via bokeh
 tqdm==4.70.1
     # via panel
+types-pyyaml==6.0.12.20261113
+    # via simorph (pyproject.toml)
 typing-extensions==4.16.0
     # via
     #   mypy
