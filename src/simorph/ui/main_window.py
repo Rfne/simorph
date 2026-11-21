@@ -40,6 +40,7 @@ from simorph.ui import theme
 from simorph.ui.commands import DocumentStore
 from simorph.ui.inspector import InspectorPanel
 from simorph.ui.profile_editor import ProfileEditor
+from simorph.ui.scene_view import SceneView
 from simorph.ui.search_panel import SearchPanel
 from simorph.ui.section_editor import SectionEditor
 from simorph.ui.session import ProjectSession
@@ -47,7 +48,7 @@ from simorph.ui.tabs import EditorTabs
 from simorph.ui.tree_model import PATH_ROLE, ProjectTreeModel
 from simorph.ui.validation_panel import ValidationPanel
 
-__all__ = ["SECTION_TITLES", "MainWindow"]
+__all__ = ["SCENE_KEY", "SCENE_TITLE", "SECTION_TITLES", "MainWindow"]
 
 #: Заголовки вкладок разделов.
 SECTION_TITLES: dict[str, str] = {
@@ -58,6 +59,10 @@ SECTION_TITLES: dict[str, str] = {
     "pipelines": "Конвейеры",
     "reports": "Отчёты",
 }
+
+#: Ключ и заголовок вкладки 3D-сцены: это не раздел, а вид мира.
+SCENE_KEY = "scene"
+SCENE_TITLE = "3D-сцена"
 
 #: Интервал автосохранения, мс.
 AUTOSAVE_INTERVAL_MS = 30_000
@@ -195,6 +200,11 @@ class MainWindow(QMainWindow):
         self.action_search.setShortcut(QKeySequence.StandardKey.Find)
         self.action_search.triggered.connect(self.toggle_search)
 
+        self.action_scene = QAction(SCENE_TITLE, self)
+        self.action_scene.setShortcut(QKeySequence("F6"))
+        self.action_scene.setToolTip("Обзор мира: орбита, зум, освещение, снимок")
+        self.action_scene.triggered.connect(lambda: self.open_scene())
+
         self._theme_group = QActionGroup(self)
         self._theme_actions: dict[str, QAction] = {}
         for name in THEMES:
@@ -235,6 +245,7 @@ class MainWindow(QMainWindow):
         project_menu = menu_bar.addMenu("Проект")
         project_menu.addAction(self.action_validate)
         project_menu.addAction(self.action_search)
+        project_menu.addAction(self.action_scene)
 
         self._rebuild_recent_menu()
 
@@ -250,6 +261,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.action_redo)
         toolbar.addSeparator()
         toolbar.addAction(self.action_validate)
+        toolbar.addAction(self.action_scene)
 
         self._filter_edit = QLineEdit()
         self._filter_edit.setPlaceholderText("фильтр дерева")
@@ -316,6 +328,9 @@ class MainWindow(QMainWindow):
             widget = self._tabs.widget(index)
             if isinstance(widget, SectionEditor):
                 widget.refresh()
+        scene = self._section_editors.get(SCENE_KEY)
+        if isinstance(scene, SceneView):
+            scene.rebuild(self._store.document)
 
     def _refresh_issues(self) -> None:
         self._issues = validate_document(self._store.document)
@@ -386,6 +401,12 @@ class MainWindow(QMainWindow):
     def tabs(self) -> EditorTabs:
         return self._tabs
 
+    @property
+    def scene_view(self) -> SceneView | None:
+        """Открытый 3D-вид или ``None``."""
+        view = self._section_editors.get(SCENE_KEY)
+        return view if isinstance(view, SceneView) else None
+
     # --- навигация -------------------------------------------------------
 
     def navigate_to(self, path: str) -> None:
@@ -428,10 +449,12 @@ class MainWindow(QMainWindow):
 
     def _section_factories(self) -> dict[str, Any]:
         """Фабрики вкладок для восстановления раскладки."""
-        return {
+        factories: dict[str, Any] = {
             section: (lambda value=section: (SECTION_TITLES[value], self._make_section(value)))
             for section in SECTION_TITLES
         }
+        factories[SCENE_KEY] = lambda: (SCENE_TITLE, self._make_scene_view())
+        return factories
 
     def _make_section(self, section: str) -> QWidget:
         """Создаёт редактор раздела: профиль — свой, остальные — общий."""
@@ -445,10 +468,23 @@ class MainWindow(QMainWindow):
         self._section_editors[section] = editor
         return editor
 
+    def _make_scene_view(self) -> SceneView:
+        view = SceneView(self._store.document, self._settings)
+        self._section_editors[SCENE_KEY] = view
+        return view
+
+    def open_scene(self) -> int:
+        """Открывает вкладку 3D-сцены или активирует уже открытую."""
+        existing = self._tabs.index_of(SCENE_KEY)
+        if existing >= 0:
+            self._tabs.setCurrentIndex(existing)
+            return existing
+        return self._tabs.open_editor(SCENE_KEY, SCENE_TITLE, self._make_scene_view())
+
     def _on_editor_closed(self, key: str) -> None:
-        """Закрытая вкладка отписывается от документа."""
+        """Закрытая вкладка отписывается от документа и освобождает сцену."""
         editor = self._section_editors.pop(key, None)
-        if isinstance(editor, ProfileEditor):
+        if isinstance(editor, (ProfileEditor, SceneView)):
             editor.dispose()
 
     def restore_layout(self) -> int:
