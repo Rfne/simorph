@@ -102,7 +102,15 @@ def test_settings_do_not_touch_project(
 @pytest.mark.unit
 def test_snapshot_contains_all_keys(settings: ApplicationSettings) -> None:
     snapshot = settings.to_dict()
-    assert set(snapshot) == {"theme", "language", "editor_path", "last_dir", "recent"}
+    assert set(snapshot) == {
+        "theme",
+        "language",
+        "editor_path",
+        "last_dir",
+        "recent",
+        "search_history",
+        "layout",
+    }
 
 
 @pytest.mark.unit

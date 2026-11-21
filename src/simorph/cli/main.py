@@ -85,6 +85,21 @@ def build_parser() -> argparse.ArgumentParser:
 
     build_project_parser(subparsers)
 
+    app_command = subparsers.add_parser("app", help="открыть графическую оболочку")
+    _add_common_options(app_command)
+    app_command.add_argument(
+        "path",
+        type=Path,
+        nargs="?",
+        default=None,
+        help="проект, который нужно открыть сразу",
+    )
+    app_command.add_argument(
+        "--offscreen",
+        action="store_true",
+        help="платформа Qt offscreen (CI без дисплея)",
+    )
+
     return parser
 
 
@@ -171,6 +186,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _cmd_version(as_json=as_json)
         if args.command == "project":
             return run_project_command(args, as_json=as_json, logger=logger)
+        if args.command == "app":
+            from simorph.ui.app import run_app
+
+            return run_app(args.path, offscreen=bool(args.offscreen))
         return _cmd_selftest(
             as_json=as_json,
             ui=bool(args.ui),

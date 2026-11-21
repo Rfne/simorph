@@ -13,6 +13,7 @@ import pytest
 from simorph.core.factory import new_project
 from simorph.core.models.project import ProjectDocument
 from simorph.core.repository import save_project
+from simorph.settings import ApplicationSettings
 
 # Qt должен узнать про offscreen до первого импорта виджетов.
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -52,3 +53,14 @@ def project_dir(tmp_path: Path, project_document: ProjectDocument) -> Iterator[P
 def project_path(project_dir: Path) -> Path:
     """Путь к сохранённому проекту."""
     return project_dir / "project.json"
+
+
+@pytest.fixture
+def isolated_settings(tmp_path: Path) -> ApplicationSettings:
+    """Настройки в отдельном ini-файле: тесты не трогают настройки машины."""
+    from PySide6.QtCore import QSettings
+
+    file = tmp_path / "settings.ini"
+    settings = QSettings(str(file), QSettings.Format.IniFormat)
+    settings.clear()
+    return ApplicationSettings(settings)

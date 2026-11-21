@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "simorph"
-version = "0.3.1"
+version = "0.4.0"
 description = "Настольная среда калибровки бортовых конвейеров патрульного робота"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
@@ -65,6 +65,10 @@ ignore = ["E501", "RUF001", "RUF002", "RUF003"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["B011"]
+# Qt требует camelCase в переопределяемых методах моделей и виджетов.
+"src/simorph/ui/tree_model.py" = ["N802"]
+"src/simorph/ui/main_window.py" = ["N802"]
+"src/simorph/ui/tabs.py" = ["N802"]
 
 [tool.ruff.format]
 quote-style = "double"

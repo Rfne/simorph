@@ -25,9 +25,14 @@ KEY_LANGUAGE = "ui/language"
 KEY_RECENT = "files/recent"
 KEY_EDITOR = "tools/editor"
 KEY_LAST_DIR = "files/last_dir"
+KEY_SEARCH_HISTORY = "search/history"
+KEY_LAYOUT = "ui/layout"
 
 #: Сколько недавних проектов помнить.
 RECENT_LIMIT = 10
+
+#: Сколько поисковых запросов помнить.
+SEARCH_HISTORY_LIMIT = 10
 
 #: Допустимые темы и языки.
 THEMES = ("dark", "light", "system")
@@ -122,6 +127,45 @@ class ApplicationSettings:
     def clear_recent(self) -> None:
         self._settings.remove(KEY_RECENT)
 
+    @property
+    def search_history(self) -> list[str]:
+        """История поисковых запросов, новые первыми."""
+        raw = self._settings.value(KEY_SEARCH_HISTORY, [])
+        if isinstance(raw, str):
+            items: Iterable[Any] = [raw] if raw else []
+        elif isinstance(raw, (list, tuple)):
+            items = raw
+        else:
+            items = []
+        return [str(item) for item in items if str(item).strip()]
+
+    def add_search_query(self, query: str) -> None:
+        """Добавляет запрос в историю без дублей."""
+        text = query.strip()
+        if not text:
+            return
+        others = [item for item in self.search_history if item != text]
+        self._settings.setValue(KEY_SEARCH_HISTORY, [text, *others][:SEARCH_HISTORY_LIMIT])
+
+    def clear_search_history(self) -> None:
+        self._settings.remove(KEY_SEARCH_HISTORY)
+
+    @property
+    def layout(self) -> list[str]:
+        """Порядок вкладок редакторов, сохранённый в прошлом сеансе."""
+        raw = self._settings.value(KEY_LAYOUT, [])
+        if isinstance(raw, str):
+            items: Iterable[Any] = [raw] if raw else []
+        elif isinstance(raw, (list, tuple)):
+            items = raw
+        else:
+            items = []
+        return [str(item) for item in items if str(item).strip()]
+
+    @layout.setter
+    def layout(self, value: list[str]) -> None:
+        self._settings.setValue(KEY_LAYOUT, list(value))
+
     def to_dict(self) -> dict[str, Any]:
         """Снимок настроек для диагностики."""
         editor = self.editor_path
@@ -132,6 +176,8 @@ class ApplicationSettings:
             "editor_path": str(editor) if editor else None,
             "last_dir": str(last_dir) if last_dir else None,
             "recent": [str(item) for item in self.recent_projects],
+            "search_history": self.search_history,
+            "layout": self.layout,
         }
 
     def sync(self) -> None:
