@@ -356,6 +356,10 @@ G1-05…G1-08 пройдены локально и в CI; G1-04 закрыт в 
 **Зависимости.** Этап 1 (схемы), этап 2 (UI).
 **Длительность.** 6,5 дней.
 
+**Статус.** T3-01…T3-08 выполнены 2026-11-21. Гейт G3 пройден: G3-01…G3-07
+проверены локально, профиль эталонных заказчиков даёт κ 42/75 и κ+ 57/75,
+векторы `P_gen`/`P_sim`/`P_hw` — 17/30/5.
+
 #### Задачи
 
 | ID | Формулировка задачи | Результат выполнения | Успех / неуспех | Дни |
@@ -711,7 +715,7 @@ G1-05…G1-08 пройдены локально и в CI; G1-04 закрыт в 
 | G0 | 2026-11-20 | Пройдено 8 из 8: G0-01, G0-03…G0-08 — локально; G0-02 — CI GitHub Actions, прогон №3 (`87ad447`), зелёный на `windows-latest` и `ubuntu-24.04`, Python 3.13.7 | — | — | Гейт закрыт |
 | G1 | 2026-11-20 | 8 из 8: G1-01…G1-08 пройдены локально и в CI. G1-04 закрыт в CLI: `project new` и `project migrate` пишут под `.lock`, второй экземпляр получает отказ с pid владельца, устаревшая блокировка снимается только по `--takeover-lock`, команды чтения работают при занятом проекте | — | — | Гейт закрыт; read-only режим в UI — этап 2 |
 | G2 | 2026-11-21 | 8 из 8 с переносом: G2-01…G2-05, G2-07, G2-08 пройдены; G2-06 пройден по имени, идентификатору и заголовку, поиск по тегам перенесён | G2-06 (часть «по тегу»): в схемах этапа 1 у сущностей нет поля `tags`, теги появляются вместе с метриками на этапе 9 | — | Гейт закрыт; read-only режим UI закрывает UI-часть G1-04 |
-| G3 | — | — | — | — | — |
+| G3 | 2026-11-21 | 7 из 7: G3-01…G3-07 пройдены. Профиль на 75 параметров импортируется с сохранением неизвестных полей; редактор показывает строку и колонку ошибки; параметр без класса блокирует проекцию; векторы 17/30/5; κ 42/75 и κ+ 57/75; NDA-профиль экспортируется только в защищённый каталог; экспорт открывается повторно и совпадает по хэшу | — | — | Гейт закрыт |
 | G4 | — | — | — | — | — |
 | G5 | — | — | — | — | — |
 | G6 | — | — | — | — | — |
@@ -817,6 +821,46 @@ G1-05…G1-08 пройдены локально и в CI; G1-04 закрыт в 
   видна пометка (`test_second_window_opens_read_only`,
   `test_read_only_session_cannot_save`); после закрытия окна `.lock`
   снимается (`test_close_releases_lock`).
+
+#### G3: фактические проверки
+
+Стенд тот же; UI-проверки — в offscreen-режиме. Эталонные профили лежат
+в `examples/profiles/` (`tatneft` — в `examples/profiles/nda/`).
+
+- G3-01 — профиль на 75 параметров импортируется, неизвестные поля раздела
+  и параметра сохраняются в `extra` и возвращаются при экспорте
+  (`test_unknown_fields_are_preserved_and_reported`,
+  `test_example_file_matches_generator`, `test_check_lists_unknown_fields`).
+- G3-02 — невалидный JSON не записывается в документ: кнопка применения
+  блокируется, ошибка показывается со строкой и колонкой, курсор переходит
+  к позиции (`test_broken_json_blocks_apply`,
+  `test_broken_json_reports_line_and_column`,
+  `test_broken_json_exit_code_and_position`).
+- G3-03 — параметр без класса блокирует проекцию и даёт предупреждение
+  `profile.parameters.N.class`; правка класса в таблице пишется в документ
+  одной командой undo (`test_unmarked_class_blocks_projection`,
+  `test_validation_warns_about_unmarked_class`,
+  `test_class_combo_writes_document`).
+- G3-04 — у всех параметров классов С и Э есть целевой вектор
+  (`test_projected_classes_have_target_and_keys`); С или Э без вектора
+  блокируют проекцию (`test_class_c_without_target_blocks_projection`);
+  эталон даёт 17/30/5 (`test_reference_profile_projects_into_three_vectors`).
+- G3-05 — κ и κ+ совпадают с эталонным расчётом: 42/75 (56,0 %) и 57/75
+  (76,0 %) для всех трёх заказчиков (`test_reference_profile_is_complete`,
+  `test_project_reports_kappa_and_vectors`).
+- G3-06 — NDA-профиль не экспортируется вне защищённого каталога, профиль
+  без флага, но со ссылкой на NDA-каталог, тоже отклоняется
+  (`test_nda_profile_is_refused_outside_protected_root`,
+  `test_non_nda_profile_with_nda_source_is_refused`,
+  `test_export_nda_profile_needs_protected_root`,
+  `test_export_nda_profile_is_refused_outside_root`).
+- G3-07 — экспорт несёт версию формата и sha256, не содержит абсолютных
+  путей и импортируется обратно с тем же профилем
+  (`test_export_contains_version_and_hash`,
+  `test_export_strips_absolute_paths`,
+  `test_export_envelope_is_accepted_on_import`).
+- Набор: `pytest` — 302 passed, 1 skipped; `ruff check`,
+  `ruff format --check`, `mypy` (strict, 55 файлов) — без замечаний.
 
 ---
 

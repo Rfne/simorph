@@ -86,7 +86,7 @@
       ]
     }
   ],
-  "created_at": "2026-11-20T14:44:23Z",
+  "created_at": "2026-11-21T13:56:43Z",
   "exercises": [
     {
       "agents": [
@@ -172,11 +172,16 @@
   ],
   "profile": {
     "customer": null,
+    "extra": {},
+    "nda": false,
     "parameters": [
       {
-        "class": "M",
+        "block": "A",
+        "class": "N",
         "comment": null,
+        "extra": {},
         "id": "П-01",
+        "projection": [],
         "range": null,
         "source": "project new",
         "target": null,
@@ -186,7 +191,7 @@
     ],
     "schema_version": "1.0"
   },
-  "project_id": "d86c0a4c-3b28-410c-b570-371c8170f156",
+  "project_id": "e9413042-8e01-4b7e-83c7-925aa550f2db",
   "reports": [
     {
       "export": [
@@ -219,7 +224,7 @@
     "domain_id": 0,
     "mode": "inproc"
   },
-  "updated_at": "2026-11-20T14:44:23Z",
+  "updated_at": "2026-11-21T13:56:43Z",
   "world": {
     "buildings": [],
     "equipment": [],

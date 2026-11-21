@@ -438,15 +438,68 @@ def check_document(document: ProjectDocument) -> list[Issue]:
     issues += _check_reports(document)
 
     for index, parameter in enumerate(document.profile.parameters):
-        if parameter.klass == "C" and parameter.target != "P_gen":
+        issues += _check_profile_parameter(index, parameter)
+    return issues
+
+
+#: Допустимые целевые векторы по классу параметра (TRD 5.2, 6.1).
+_TARGETS_BY_CLASS: dict[str, tuple[str, ...]] = {
+    "C": ("P_gen",),
+    "E": ("P_sim", "P_hw"),
+    "M": ("P_sim",),
+}
+
+
+def _check_profile_parameter(index: int, parameter: Any) -> list[Issue]:
+    """Согласованность класса, целевого вектора и ключей проекции.
+
+    Незаполненный класс — предупреждение, а не ошибка: профиль можно
+    сохранить и дополнить, но проекция такого профиля запрещена (T3-03).
+    """
+    prefix = f"profile.parameters.{index}"
+    issues: list[Issue] = []
+    if parameter.klass is None:
+        issues.append(
+            issue(
+                IssueCode.INVALID_VALUE,
+                f"{prefix}.class",
+                "класс не указан: проекция профиля заблокирована",
+                severity=Severity.WARNING,
+            )
+        )
+        return issues
+    if parameter.klass == "N":
+        return issues
+
+    allowed = _TARGETS_BY_CLASS.get(parameter.klass, ())
+    if parameter.target is None:
+        # Класс М может остаться без вектора: часть метаданных в прогон не идёт.
+        if parameter.klass in {"C", "E"}:
             issues.append(
                 issue(
                     IssueCode.INVALID_VALUE,
-                    f"profile.parameters.{index}.target",
-                    "параметр класса 'C' проецируется в 'P_gen'",
-                    severity=Severity.WARNING,
+                    f"{prefix}.target",
+                    f"параметр класса {parameter.klass!r} не проецируется ни в один вектор",
                 )
             )
+    elif allowed and parameter.target not in allowed:
+        issues.append(
+            issue(
+                IssueCode.INVALID_VALUE,
+                f"{prefix}.target",
+                f"параметр класса {parameter.klass!r} проецируется в {parameter.target!r},"
+                f" допустимо: {', '.join(allowed)}",
+            )
+        )
+    if parameter.target is not None and not parameter.projection:
+        issues.append(
+            issue(
+                IssueCode.INVALID_VALUE,
+                f"{prefix}.projection",
+                "указан целевой вектор, но не перечислены ключи проекции",
+                severity=Severity.WARNING,
+            )
+        )
     return issues
 
 

@@ -172,11 +172,16 @@
   ],
   "profile": {
     "customer": null,
+    "extra": {},
+    "nda": false,
     "parameters": [
       {
-        "class": "M",
+        "block": "A",
+        "class": "N",
         "comment": null,
+        "extra": {},
         "id": "П-01",
+        "projection": [],
         "range": null,
         "source": "project new",
         "target": null,

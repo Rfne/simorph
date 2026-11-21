@@ -39,6 +39,7 @@ from simorph.settings import THEMES, ApplicationSettings
 from simorph.ui import theme
 from simorph.ui.commands import DocumentStore
 from simorph.ui.inspector import InspectorPanel
+from simorph.ui.profile_editor import ProfileEditor
 from simorph.ui.search_panel import SearchPanel
 from simorph.ui.section_editor import SectionEditor
 from simorph.ui.session import ProjectSession
@@ -78,6 +79,7 @@ class MainWindow(QMainWindow):
         self._session = ProjectSession(self._settings)
         self._store = DocumentStore(new_project("без имени"))
         self._issues: list[Issue] = []
+        self._section_editors: dict[str, QWidget] = {}
         self._current_theme = theme.apply_theme(_app(), self._settings.theme)
         self._confirmations_enabled = True
 
@@ -262,6 +264,7 @@ class MainWindow(QMainWindow):
         self._inspector.navigate_requested.connect(self.navigate_to)
         self._validation.navigate_requested.connect(self.navigate_to)
         self._search.navigate_requested.connect(self.navigate_to)
+        self._tabs.editor_closed.connect(self._on_editor_closed)
         self._store.add_listener(self._on_document_changed)
         self._store.stack.canUndoChanged.connect(self.action_undo.setEnabled)
         self._store.stack.canRedoChanged.connect(self.action_redo.setEnabled)
@@ -420,8 +423,7 @@ class MainWindow(QMainWindow):
         if existing >= 0:
             self._tabs.setCurrentIndex(existing)
             return existing
-        editor = SectionEditor(self._model, section)
-        editor.navigate_requested.connect(self.navigate_to)
+        editor = self._make_section(section)
         return self._tabs.open_editor(section, SECTION_TITLES[section], editor)
 
     def _section_factories(self) -> dict[str, Any]:
@@ -431,10 +433,23 @@ class MainWindow(QMainWindow):
             for section in SECTION_TITLES
         }
 
-    def _make_section(self, section: str) -> SectionEditor:
-        editor = SectionEditor(self._model, section)
-        editor.navigate_requested.connect(self.navigate_to)
+    def _make_section(self, section: str) -> QWidget:
+        """Создаёт редактор раздела: профиль — свой, остальные — общий."""
+        editor: QWidget
+        if section == "profile":
+            editor = ProfileEditor(self._store, self._settings)
+        else:
+            tree_editor = SectionEditor(self._model, section)
+            tree_editor.navigate_requested.connect(self.navigate_to)
+            editor = tree_editor
+        self._section_editors[section] = editor
         return editor
+
+    def _on_editor_closed(self, key: str) -> None:
+        """Закрытая вкладка отписывается от документа."""
+        editor = self._section_editors.pop(key, None)
+        if isinstance(editor, ProfileEditor):
+            editor.dispose()
 
     def restore_layout(self) -> int:
         """Восстанавливает открытые вкладки прошлого сеанса."""

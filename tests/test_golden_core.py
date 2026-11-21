@@ -18,7 +18,9 @@ from simorph.core.repository import load_project, save_project
 GOLDEN = Path(__file__).parent / "golden" / "demo_project_v1.json"
 
 #: Хэш эталонного проекта: меняется только вместе с эталоном и ADR.
-GOLDEN_HASH = "sha256:df6ba519c8543c32ad2e7626280c662d28e98a1a4df7b231eed7dd0b396997d9"
+#: 0.5.0 — профиль получил блок, проекцию, флаг NDA и слот неизвестных полей
+#: (ADR-0004), поэтому эталон перегенерирован.
+GOLDEN_HASH = "sha256:23a911279ae8346352f14625ae130de206d6ea3047979d56dbff69699fa4f008"
 
 
 @pytest.mark.regression

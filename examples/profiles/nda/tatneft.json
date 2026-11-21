@@ -1,0 +1,1092 @@
+{
+  "export_version": "1.0",
+  "hash": "sha256:ef4d0afc7dc4b915095f829c2af096111827d7f03742b59219c29f03597d46c0",
+  "profile": {
+    "customer": "ПАО «Татнефть»",
+    "nda": true,
+    "parameters": [
+      {
+        "block": "A",
+        "class": "N",
+        "comment": null,
+        "id": "П-01",
+        "projection": [],
+        "range": null,
+        "source": "Анкета",
+        "target": null,
+        "unit": null,
+        "value": "ПАО «Татнефть», ИНН 1644003838"
+      },
+      {
+        "block": "A",
+        "class": "N",
+        "comment": null,
+        "id": "П-02",
+        "projection": [],
+        "range": null,
+        "source": "Анкета, ЕГРЮЛ",
+        "target": null,
+        "unit": null,
+        "value": "06.10"
+      },
+      {
+        "block": "A",
+        "class": "E",
+        "comment": null,
+        "id": "П-03",
+        "projection": [
+          "equipment_class_weights",
+          "magistral_density_range"
+        ],
+        "range": null,
+        "source": "Анкета, обход",
+        "target": "P_sim",
+        "unit": null,
+        "value": "continuous"
+      },
+      {
+        "block": "A",
+        "class": "E",
+        "comment": null,
+        "id": "П-04",
+        "projection": [
+          "sim_start_utc",
+          "sim_end_utc",
+          "sim_time_scale"
+        ],
+        "range": null,
+        "source": "Анкета",
+        "target": "P_sim",
+        "unit": null,
+        "value": "continuous"
+      },
+      {
+        "block": "A",
+        "class": "M",
+        "comment": null,
+        "id": "П-05",
+        "projection": [
+          "corporate_integration_enabled"
+        ],
+        "range": null,
+        "source": "Анкета, ИТ",
+        "target": "P_sim",
+        "unit": null,
+        "value": "BIM, ERP, ТОиР, СКУД"
+      },
+      {
+        "block": "B",
+        "class": "C",
+        "comment": null,
+        "id": "П-06",
+        "projection": [
+          "geo_polygon_points"
+        ],
+        "range": null,
+        "source": "Генплан",
+        "target": "P_gen",
+        "unit": "км²",
+        "value": 640.0
+      },
+      {
+        "block": "B",
+        "class": "C",
+        "comment": null,
+        "id": "П-07",
+        "projection": [
+          "zone_partition_count",
+          "zone_rectangularness_range"
+        ],
+        "range": null,
+        "source": "Генплан",
+        "target": "P_gen",
+        "unit": null,
+        "value": "multi"
+      },
+      {
+        "block": "B",
+        "class": "C",
+        "comment": null,
+        "id": "П-08",
+        "projection": [
+          "terrain_elevation_range",
+          "terrain_seed"
+        ],
+        "range": [
+          0.0,
+          80.0
+        ],
+        "source": "Топосъёмка",
+        "target": "P_gen",
+        "unit": "м",
+        "value": null
+      },
+      {
+        "block": "B",
+        "class": "C",
+        "comment": null,
+        "id": "П-09",
+        "projection": [
+          "water_bodies_count",
+          "water_body_shape_complexity"
+        ],
+        "range": null,
+        "source": "Генплан",
+        "target": "P_gen",
+        "unit": "шт.",
+        "value": 6.0
+      },
+      {
+        "block": "B",
+        "class": "C",
+        "comment": null,
+        "id": "П-10",
+        "projection": [
+          "zone_partition_count",
+          "equipment_class_weights"
+        ],
+        "range": null,
+        "source": "Технолог",
+        "target": "P_gen",
+        "unit": null,
+        "value": "техзона, резервуарный парк, факел, АБК"
+      },
+      {
+        "block": "B",
+        "class": "C",
+        "comment": null,
+        "id": "П-11",
+        "projection": [
+          "terrain_material_weights",
+          "zone_rectangularness_range"
+        ],
+        "range": null,
+        "source": "Обход",
+        "target": "P_gen",
+        "unit": null,
+        "value": "асфальт, щебень, лестницы"
+      },
+      {
+        "block": "B",
+        "class": "C",
+        "comment": null,
+        "id": "П-12",
+        "projection": [
+          "magistral_density_range",
+          "pipeline_channels_count_range",
+          "cable_channels_count_range"
+        ],
+        "range": null,
+        "source": "Исполнительная съёмка",
+        "target": "P_gen",
+        "unit": "км",
+        "value": 48.0
+      },
+      {
+        "block": "B",
+        "class": "C",
+        "comment": null,
+        "id": "П-13",
+        "projection": [
+          "tree_density_range",
+          "tree_height_range",
+          "tree_pipeline_intersection_cases"
+        ],
+        "range": null,
+        "source": "Обход, дендроплан",
+        "target": "P_gen",
+        "unit": "шт./га",
+        "value": 25.0
+      },
+      {
+        "block": "B",
+        "class": "C",
+        "comment": null,
+        "id": "П-14",
+        "projection": [
+          "buildings_per_zone_range",
+          "building_floors_range",
+          "building_footprint_rectangularness"
+        ],
+        "range": null,
+        "source": "Техплан, BIM",
+        "target": "P_gen",
+        "unit": "шт.",
+        "value": 60.0
+      },
+      {
+        "block": "C",
+        "class": "C",
+        "comment": null,
+        "id": "П-15",
+        "projection": [
+          "outdoor_equipment_count_range",
+          "indoor_equipment_count_range",
+          "asset_library_root"
+        ],
+        "range": null,
+        "source": "Реестр, BIM",
+        "target": "P_gen",
+        "unit": "шт.",
+        "value": 420.0
+      },
+      {
+        "block": "C",
+        "class": "C",
+        "comment": null,
+        "id": "П-16",
+        "projection": [
+          "equipment_height_range",
+          "service_zone_margin_range"
+        ],
+        "range": [
+          2.0,
+          24.0
+        ],
+        "source": "BIM, паспорт",
+        "target": "P_gen",
+        "unit": "м",
+        "value": null
+      },
+      {
+        "block": "C",
+        "class": "M",
+        "comment": null,
+        "id": "П-17",
+        "projection": [],
+        "range": null,
+        "source": "Анкета, риск-анализ",
+        "target": null,
+        "unit": "кат.",
+        "value": 3.0
+      },
+      {
+        "block": "C",
+        "class": "E",
+        "comment": null,
+        "id": "П-18",
+        "projection": [
+          "object_anomalies_count_range",
+          "technogenic_intensity_vector"
+        ],
+        "range": null,
+        "source": "Эксплуатация, НСИ",
+        "target": "P_sim",
+        "unit": null,
+        "value": "коррозия, разгерметизация, перегрев"
+      },
+      {
+        "block": "C",
+        "class": "C",
+        "comment": null,
+        "id": "П-19",
+        "projection": [
+          "custom_assets_enabled",
+          "asset_library_root"
+        ],
+        "range": null,
+        "source": "BIM-стратегия",
+        "target": "P_gen",
+        "unit": null,
+        "value": "BIM as-built"
+      },
+      {
+        "block": "C",
+        "class": "C",
+        "comment": null,
+        "id": "П-20",
+        "projection": [
+          "equipment_class_weights"
+        ],
+        "range": null,
+        "source": "Отрасль",
+        "target": "P_gen",
+        "unit": null,
+        "value": "факел, градирня, резервуар, колонна"
+      },
+      {
+        "block": "C",
+        "class": "E",
+        "comment": null,
+        "id": "П-21",
+        "projection": [
+          "technogenic_intensity_vector"
+        ],
+        "range": null,
+        "source": "Промбезопасность",
+        "target": "P_sim",
+        "unit": null,
+        "value": "газ, взрывоопасная"
+      },
+      {
+        "block": "C",
+        "class": "E",
+        "comment": null,
+        "id": "П-22",
+        "projection": [
+          "fixed_step_size",
+          "object_anomalies_count_range"
+        ],
+        "range": null,
+        "source": "Технолог",
+        "target": "P_sim",
+        "unit": null,
+        "value": "slow"
+      },
+      {
+        "block": "D",
+        "class": "E",
+        "comment": null,
+        "id": "П-23",
+        "projection": [
+          "object_anomalies_count_range"
+        ],
+        "range": null,
+        "source": "Анкета",
+        "target": "P_sim",
+        "unit": null,
+        "value": "утечка, перегрев"
+      },
+      {
+        "block": "D",
+        "class": "E",
+        "comment": null,
+        "id": "П-24",
+        "projection": [
+          "sim_start_utc"
+        ],
+        "range": null,
+        "source": "Регламент",
+        "target": "P_sim",
+        "unit": null,
+        "value": "фиксация момента и зоны"
+      },
+      {
+        "block": "D",
+        "class": "C",
+        "comment": null,
+        "id": "П-25",
+        "projection": [
+          "custom_assets_enabled"
+        ],
+        "range": null,
+        "source": "Стройконтроль",
+        "target": "P_gen",
+        "unit": null,
+        "value": "соответствие эталону"
+      },
+      {
+        "block": "D",
+        "class": "E",
+        "comment": null,
+        "id": "П-26",
+        "projection": [
+          "sim_time_scale",
+          "swarm_size"
+        ],
+        "range": null,
+        "source": "SLA",
+        "target": "P_sim",
+        "unit": "мин",
+        "value": 30.0
+      },
+      {
+        "block": "D",
+        "class": "M",
+        "comment": null,
+        "id": "П-27",
+        "projection": [
+          "mission_approval_mode",
+          "backend_coordination_mode"
+        ],
+        "range": null,
+        "source": "Регламент",
+        "target": "P_sim",
+        "unit": null,
+        "value": "плановые, реактивные"
+      },
+      {
+        "block": "D",
+        "class": "E",
+        "comment": null,
+        "id": "П-28",
+        "projection": [
+          "TC-SEN-01",
+          "TC-SEN-02",
+          "TC-SEN-03"
+        ],
+        "range": null,
+        "source": "Анкета",
+        "target": "P_hw",
+        "unit": "см",
+        "value": 10.0
+      },
+      {
+        "block": "D",
+        "class": "E",
+        "comment": null,
+        "id": "П-29",
+        "projection": [
+          "TC-SEN-01",
+          "TC-SEN-03"
+        ],
+        "range": null,
+        "source": "Методика контроля",
+        "target": "P_hw",
+        "unit": "мм/пикс",
+        "value": 1.5
+      },
+      {
+        "block": "D",
+        "class": "M",
+        "comment": null,
+        "id": "П-30",
+        "projection": [
+          "report_template_id"
+        ],
+        "range": null,
+        "source": "Заказчик",
+        "target": "P_sim",
+        "unit": null,
+        "value": "акт, дефектная ведомость"
+      },
+      {
+        "block": "D",
+        "class": "M",
+        "comment": null,
+        "id": "П-31",
+        "projection": [],
+        "range": null,
+        "source": "SLA",
+        "target": null,
+        "unit": "%",
+        "value": 5.0
+      },
+      {
+        "block": "E",
+        "class": "E",
+        "comment": null,
+        "id": "П-32",
+        "projection": [
+          "technogenic_intensity_vector"
+        ],
+        "range": null,
+        "source": "НСИ, нормативы",
+        "target": "P_sim",
+        "unit": null,
+        "value": "ПДК, температура, радиация"
+      },
+      {
+        "block": "E",
+        "class": "M",
+        "comment": null,
+        "id": "П-33",
+        "projection": [],
+        "range": null,
+        "source": "Регламент",
+        "target": null,
+        "unit": null,
+        "value": "условие → действие"
+      },
+      {
+        "block": "E",
+        "class": "M",
+        "comment": null,
+        "id": "П-34",
+        "projection": [],
+        "range": null,
+        "source": "Регламент",
+        "target": null,
+        "unit": null,
+        "value": "эскалация по таймауту"
+      },
+      {
+        "block": "E",
+        "class": "N",
+        "comment": null,
+        "id": "П-35",
+        "projection": [],
+        "range": null,
+        "source": "ИБ",
+        "target": null,
+        "unit": null,
+        "value": "RBAC"
+      },
+      {
+        "block": "E",
+        "class": "N",
+        "comment": null,
+        "id": "П-36",
+        "projection": [],
+        "range": null,
+        "source": "152-ФЗ, ИБ",
+        "target": null,
+        "unit": null,
+        "value": "30 суток"
+      },
+      {
+        "block": "E",
+        "class": "M",
+        "comment": null,
+        "id": "П-37",
+        "projection": [
+          "constraints_geofence",
+          "z_max"
+        ],
+        "range": null,
+        "source": "6.1–6.2",
+        "target": "P_sim",
+        "unit": null,
+        "value": "ИВП, запретные зоны"
+      },
+      {
+        "block": "E",
+        "class": "N",
+        "comment": null,
+        "id": "П-38",
+        "projection": [],
+        "range": null,
+        "source": "СанПиН",
+        "target": null,
+        "unit": null,
+        "value": "55 дБ"
+      },
+      {
+        "block": "E",
+        "class": "E",
+        "comment": null,
+        "id": "П-39",
+        "projection": [
+          "anomaly_injection_profile"
+        ],
+        "range": null,
+        "source": "ПБ",
+        "target": "P_sim",
+        "unit": null,
+        "value": "пожар, утечка"
+      },
+      {
+        "block": "E",
+        "class": "M",
+        "comment": null,
+        "id": "П-40",
+        "projection": [
+          "packet_loss_range"
+        ],
+        "range": null,
+        "source": "Регламент",
+        "target": "P_sim",
+        "unit": null,
+        "value": "store-and-forward"
+      },
+      {
+        "block": "F",
+        "class": "C",
+        "comment": null,
+        "id": "П-41",
+        "projection": [
+          "custom_assets_enabled"
+        ],
+        "range": null,
+        "source": "Анкета",
+        "target": "P_gen",
+        "unit": null,
+        "value": "corporate"
+      },
+      {
+        "block": "F",
+        "class": "M",
+        "comment": null,
+        "id": "П-42",
+        "projection": [],
+        "range": null,
+        "source": "ИТ",
+        "target": null,
+        "unit": null,
+        "value": "usage"
+      },
+      {
+        "block": "F",
+        "class": "M",
+        "comment": null,
+        "id": "П-43",
+        "projection": [
+          "edo_endpoint"
+        ],
+        "range": null,
+        "source": "ИТ",
+        "target": "P_sim",
+        "unit": null,
+        "value": "SAP PM"
+      },
+      {
+        "block": "F",
+        "class": "M",
+        "comment": null,
+        "id": "П-44",
+        "projection": [
+          "industrial_protocol"
+        ],
+        "range": null,
+        "source": "ИТ",
+        "target": "P_sim",
+        "unit": null,
+        "value": "OPC-UA"
+      },
+      {
+        "block": "F",
+        "class": "N",
+        "comment": null,
+        "id": "П-45",
+        "projection": [],
+        "range": null,
+        "source": "Заказчик",
+        "target": null,
+        "unit": null,
+        "value": "BI-выгрузка"
+      },
+      {
+        "block": "F",
+        "class": "M",
+        "comment": null,
+        "id": "П-46",
+        "projection": [
+          "custom_assets_enabled"
+        ],
+        "range": null,
+        "source": "ИБ",
+        "target": "P_sim",
+        "unit": null,
+        "value": true
+      },
+      {
+        "block": "F",
+        "class": "N",
+        "comment": null,
+        "id": "П-47",
+        "projection": [],
+        "range": null,
+        "source": "ИТ",
+        "target": null,
+        "unit": "ТБ",
+        "value": 2.0
+      },
+      {
+        "block": "F",
+        "class": "N",
+        "comment": null,
+        "id": "П-48",
+        "projection": [],
+        "range": null,
+        "source": "ИБ",
+        "target": null,
+        "unit": null,
+        "value": "SSO, аудит"
+      },
+      {
+        "block": "G",
+        "class": "E",
+        "comment": null,
+        "id": "П-49",
+        "projection": [
+          "swarm_size",
+          "base_station_count",
+          "drone_model_type"
+        ],
+        "range": null,
+        "source": "Анкета",
+        "target": "P_sim",
+        "unit": null,
+        "value": "6 НРТК + 2 БВС"
+      },
+      {
+        "block": "G",
+        "class": "E",
+        "comment": null,
+        "id": "П-50",
+        "projection": [
+          "TC-DYN-01",
+          "TC-DYN-02",
+          "TC-DYN-03",
+          "TC-DYN-04",
+          "TC-DYN-05",
+          "TC-DYN-06",
+          "TC-DYN-07",
+          "TC-DYN-08",
+          "TC-DYN-09"
+        ],
+        "range": null,
+        "source": "4.2",
+        "target": "P_hw",
+        "unit": null,
+        "value": "tracked"
+      },
+      {
+        "block": "G",
+        "class": "E",
+        "comment": null,
+        "id": "П-51",
+        "projection": [
+          "TC-SEN-01",
+          "TC-SEN-02",
+          "TC-SEN-03",
+          "TC-SEN-04",
+          "TC-SEN-05",
+          "TC-SEN-06",
+          "TC-SEN-07",
+          "TC-CMP-01",
+          "TC-CMP-02",
+          "TC-CMP-03",
+          "TC-CMP-04",
+          "TC-CMP-05",
+          "TC-CMP-06",
+          "TC-CMP-07",
+          "TC-CMP-08",
+          "TC-CMP-09"
+        ],
+        "range": null,
+        "source": "4.1",
+        "target": "P_hw",
+        "unit": null,
+        "value": "стереопара, IMU, GPS, тепловизор"
+      },
+      {
+        "block": "G",
+        "class": "E",
+        "comment": null,
+        "id": "П-52",
+        "projection": [
+          "TC-ENE-01",
+          "TC-ENE-02",
+          "TC-ENE-03",
+          "TC-ENE-04",
+          "TC-ENE-05"
+        ],
+        "range": null,
+        "source": "4.1",
+        "target": "P_hw",
+        "unit": "Вт·ч",
+        "value": 640.0
+      },
+      {
+        "block": "G",
+        "class": "E",
+        "comment": null,
+        "id": "П-53",
+        "projection": [
+          "comm_link_profile",
+          "latency_range_ms",
+          "jitter_range_ms",
+          "packet_loss_range"
+        ],
+        "range": null,
+        "source": "Анкета",
+        "target": "P_sim",
+        "unit": null,
+        "value": "lte"
+      },
+      {
+        "block": "G",
+        "class": "C",
+        "comment": null,
+        "id": "П-54",
+        "projection": [
+          "charging_station_count"
+        ],
+        "range": null,
+        "source": "Генплан",
+        "target": "P_gen",
+        "unit": "шт.",
+        "value": 4.0
+      },
+      {
+        "block": "G",
+        "class": "C",
+        "comment": null,
+        "id": "П-55",
+        "projection": [
+          "comm_shadow_zones"
+        ],
+        "range": null,
+        "source": "Радиопланирование",
+        "target": "P_gen",
+        "unit": null,
+        "value": "за резервуарами"
+      },
+      {
+        "block": "G",
+        "class": "N",
+        "comment": null,
+        "id": "П-56",
+        "projection": [],
+        "range": null,
+        "source": "Эксплуатация",
+        "target": null,
+        "unit": "шт.",
+        "value": 2.0
+      },
+      {
+        "block": "H",
+        "class": "E",
+        "comment": null,
+        "id": "П-57",
+        "projection": [
+          "temperature_range",
+          "humidity_range",
+          "precipitation_rate_range"
+        ],
+        "range": null,
+        "source": "Справочник",
+        "target": "P_sim",
+        "unit": null,
+        "value": "continental"
+      },
+      {
+        "block": "H",
+        "class": "E",
+        "comment": null,
+        "id": "П-58",
+        "projection": [
+          "wind_speed_range",
+          "wind_gust_model"
+        ],
+        "range": null,
+        "source": "Метеосводка",
+        "target": "P_sim",
+        "unit": "м/с",
+        "value": 8.0
+      },
+      {
+        "block": "H",
+        "class": "E",
+        "comment": null,
+        "id": "П-59",
+        "projection": [
+          "latitude",
+          "longitude",
+          "sun_moon_model"
+        ],
+        "range": null,
+        "source": "Геоданные",
+        "target": "P_sim",
+        "unit": "°",
+        "value": 54.0
+      },
+      {
+        "block": "H",
+        "class": "E",
+        "comment": null,
+        "id": "П-60",
+        "projection": [
+          "cloudiness_range",
+          "precipitation_rate_range"
+        ],
+        "range": null,
+        "source": "Метеосводка",
+        "target": "P_sim",
+        "unit": "%",
+        "value": 70.0
+      },
+      {
+        "block": "H",
+        "class": "E",
+        "comment": null,
+        "id": "П-61",
+        "projection": [
+          "technogenic_disasters_count_range",
+          "technogenic_intensity_vector"
+        ],
+        "range": null,
+        "source": "Технолог",
+        "target": "P_sim",
+        "unit": null,
+        "value": "steam"
+      },
+      {
+        "block": "H",
+        "class": "E",
+        "comment": null,
+        "id": "П-62",
+        "projection": [
+          "tree_height_range",
+          "terrain_elevation_range",
+          "temperature_range"
+        ],
+        "range": null,
+        "source": "Обход",
+        "target": "P_sim",
+        "unit": null,
+        "value": "snow"
+      },
+      {
+        "block": "H",
+        "class": "E",
+        "comment": null,
+        "id": "П-63",
+        "projection": [
+          "packet_loss_range",
+          "jitter_range_ms"
+        ],
+        "range": null,
+        "source": "Радиопланирование",
+        "target": "P_sim",
+        "unit": null,
+        "value": "high"
+      },
+      {
+        "block": "I",
+        "class": "N",
+        "comment": null,
+        "id": "П-64",
+        "projection": [],
+        "range": null,
+        "source": "5.1–5.2",
+        "target": null,
+        "unit": "₽/год",
+        "value": 0.0
+      },
+      {
+        "block": "I",
+        "class": "N",
+        "comment": null,
+        "id": "П-65",
+        "projection": [],
+        "range": null,
+        "source": "Анкета",
+        "target": null,
+        "unit": "₽",
+        "value": 0.0
+      },
+      {
+        "block": "I",
+        "class": "M",
+        "comment": null,
+        "id": "П-66",
+        "projection": [
+          "T_max",
+          "Q_max",
+          "u_min"
+        ],
+        "range": null,
+        "source": "Договор",
+        "target": "P_sim",
+        "unit": null,
+        "value": "T_react 60 с"
+      },
+      {
+        "block": "I",
+        "class": "N",
+        "comment": null,
+        "id": "П-67",
+        "projection": [],
+        "range": null,
+        "source": "Эксплуатация",
+        "target": null,
+        "unit": "ч",
+        "value": 500.0
+      },
+      {
+        "block": "I",
+        "class": "N",
+        "comment": null,
+        "id": "П-68",
+        "projection": [],
+        "range": null,
+        "source": "Анкета",
+        "target": null,
+        "unit": "лет",
+        "value": 5.0
+      },
+      {
+        "block": "I",
+        "class": "E",
+        "comment": null,
+        "id": "П-69",
+        "projection": [
+          "swarm_size"
+        ],
+        "range": null,
+        "source": "Анкета",
+        "target": "P_sim",
+        "unit": "%/год",
+        "value": 12.0
+      },
+      {
+        "block": "I",
+        "class": "N",
+        "comment": null,
+        "id": "П-70",
+        "projection": [],
+        "range": null,
+        "source": "Договор",
+        "target": null,
+        "unit": null,
+        "value": "передача документации"
+      },
+      {
+        "block": "J",
+        "class": "N",
+        "comment": null,
+        "id": "П-71",
+        "projection": [],
+        "range": null,
+        "source": "Анкета",
+        "target": null,
+        "unit": null,
+        "value": "матрица ответственности"
+      },
+      {
+        "block": "J",
+        "class": "M",
+        "comment": null,
+        "id": "П-72",
+        "projection": [
+          "comm_windows"
+        ],
+        "range": null,
+        "source": "Эксплуатация",
+        "target": "P_sim",
+        "unit": null,
+        "value": "круглосуточно"
+      },
+      {
+        "block": "J",
+        "class": "N",
+        "comment": null,
+        "id": "П-73",
+        "projection": [],
+        "range": null,
+        "source": "Аудит данных",
+        "target": null,
+        "unit": null,
+        "value": "partial"
+      },
+      {
+        "block": "J",
+        "class": "N",
+        "comment": null,
+        "id": "П-74",
+        "projection": [],
+        "range": null,
+        "source": "Закупки",
+        "target": null,
+        "unit": null,
+        "value": "реестр Минпромторга"
+      },
+      {
+        "block": "J",
+        "class": "N",
+        "comment": null,
+        "id": "П-75",
+        "projection": [],
+        "range": null,
+        "source": "Договор",
+        "target": null,
+        "unit": "мес.",
+        "value": 18.0
+      }
+    ],
+    "schema_version": "1.0"
+  },
+  "schema_version": "1.0"
+}

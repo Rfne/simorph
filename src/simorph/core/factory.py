@@ -33,15 +33,23 @@ def _now() -> datetime:
 
 
 def build_profile() -> ProfileSection:
-    """Минимальный профиль: один параметр класса ``M``."""
+    """Минимальный профиль: один параметр класса ``N``.
+
+    Класс ``N`` выбран намеренно: он не проецируется, поэтому свежий проект
+    валиден без мира и агента, а полноценный профиль импортируется на этапе 3.
+    """
     return ProfileSection(
         schema_version=CURRENT_VERSION,
         customer=None,
         parameters=[
-            ProfileParameter(
-                id="П-01",
-                value="demo",
-                source="project new",
+            ProfileParameter.model_validate(
+                {
+                    "id": "П-01",
+                    "block": "A",
+                    "value": "demo",
+                    "class": "N",
+                    "source": "project new",
+                }
             )
         ],
     )

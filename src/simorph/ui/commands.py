@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from typing import Any, Final
 
 from PySide6.QtGui import QUndoCommand, QUndoStack
@@ -44,6 +45,11 @@ class DocumentStore:
     def add_listener(self, callback: Any) -> None:
         """Подписывает на смену документа."""
         self._listeners.append(callback)
+
+    def remove_listener(self, callback: Any) -> None:
+        """Отписывает от смены документа (закрытая вкладка не держит ссылку)."""
+        with contextlib.suppress(ValueError):
+            self._listeners.remove(callback)
 
     def _emit(self) -> None:
         for callback in self._listeners:
