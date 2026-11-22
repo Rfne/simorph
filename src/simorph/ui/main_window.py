@@ -46,6 +46,7 @@ from simorph.ui.scene_view import SceneView
 from simorph.ui.search_panel import SearchPanel
 from simorph.ui.section_editor import SectionEditor
 from simorph.ui.session import ProjectSession
+from simorph.ui.simulation_view import SimulationView
 from simorph.ui.tabs import EditorTabs
 from simorph.ui.tree_model import PATH_ROLE, ProjectTreeModel
 from simorph.ui.validation_panel import ValidationPanel
@@ -58,6 +59,8 @@ __all__ = [
     "SCENE_KEY",
     "SCENE_TITLE",
     "SECTION_TITLES",
+    "SIMULATION_KEY",
+    "SIMULATION_TITLE",
     "MainWindow",
 ]
 
@@ -82,6 +85,10 @@ AGENT_TITLE = "Агент"
 #: Ключ и заголовок вкладки миссии: граф, элемент и тайминги.
 MISSION_KEY = "mission"
 MISSION_TITLE = "Миссия"
+
+#: Ключ и заголовок вкладки симуляции: прогон, метрики и события.
+SIMULATION_KEY = "simulation"
+SIMULATION_TITLE = "Симуляция"
 
 #: Интервал автосохранения, мс.
 AUTOSAVE_INTERVAL_MS = 30_000
@@ -234,6 +241,11 @@ class MainWindow(QMainWindow):
         self.action_mission.setToolTip("Граф миссии, элемент и тайминги")
         self.action_mission.triggered.connect(lambda: self.open_mission())
 
+        self.action_simulation = QAction(SIMULATION_TITLE, self)
+        self.action_simulation.setShortcut(QKeySequence("F9"))
+        self.action_simulation.setToolTip("Headless-прогон: масштаб времени, кадры и события")
+        self.action_simulation.triggered.connect(lambda: self.open_simulation())
+
         self._theme_group = QActionGroup(self)
         self._theme_actions: dict[str, QAction] = {}
         for name in THEMES:
@@ -277,6 +289,7 @@ class MainWindow(QMainWindow):
         project_menu.addAction(self.action_scene)
         project_menu.addAction(self.action_agent)
         project_menu.addAction(self.action_mission)
+        project_menu.addAction(self.action_simulation)
 
         self._rebuild_recent_menu()
 
@@ -295,6 +308,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.action_scene)
         toolbar.addAction(self.action_agent)
         toolbar.addAction(self.action_mission)
+        toolbar.addAction(self.action_simulation)
 
         self._filter_edit = QLineEdit()
         self._filter_edit.setPlaceholderText("фильтр дерева")
@@ -370,6 +384,9 @@ class MainWindow(QMainWindow):
         mission = self._section_editors.get(MISSION_KEY)
         if isinstance(mission, MissionView):
             mission.rebuild(self._store.document)
+        simulation = self._section_editors.get(SIMULATION_KEY)
+        if isinstance(simulation, SimulationView):
+            simulation.rebuild(self._store.document)
 
     def _refresh_issues(self) -> None:
         self._issues = validate_document(self._store.document)
@@ -458,6 +475,12 @@ class MainWindow(QMainWindow):
         view = self._section_editors.get(MISSION_KEY)
         return view if isinstance(view, MissionView) else None
 
+    @property
+    def simulation_view(self) -> SimulationView | None:
+        """Открытая вкладка симуляции или ``None``."""
+        view = self._section_editors.get(SIMULATION_KEY)
+        return view if isinstance(view, SimulationView) else None
+
     # --- навигация -------------------------------------------------------
 
     def navigate_to(self, path: str) -> None:
@@ -507,6 +530,10 @@ class MainWindow(QMainWindow):
         factories[SCENE_KEY] = lambda: (SCENE_TITLE, self._make_scene_view())
         factories[AGENT_KEY] = lambda: (AGENT_TITLE, self._make_agent_view())
         factories[MISSION_KEY] = lambda: (MISSION_TITLE, self._make_mission_view())
+        factories[SIMULATION_KEY] = lambda: (
+            SIMULATION_TITLE,
+            self._make_simulation_view(),
+        )
         return factories
 
     def _make_section(self, section: str) -> QWidget:
@@ -560,10 +587,30 @@ class MainWindow(QMainWindow):
             return existing
         return self._tabs.open_editor(MISSION_KEY, MISSION_TITLE, self._make_mission_view())
 
+    def _make_simulation_view(self) -> SimulationView:
+        view = SimulationView(self._store, self._settings)
+        self._section_editors[SIMULATION_KEY] = view
+        return view
+
+    def open_simulation(self) -> int:
+        """Открывает вкладку симуляции или активирует уже открытую."""
+        existing = self._tabs.index_of(SIMULATION_KEY)
+        if existing >= 0:
+            self._tabs.setCurrentIndex(existing)
+            return existing
+        return self._tabs.open_editor(
+            SIMULATION_KEY,
+            SIMULATION_TITLE,
+            self._make_simulation_view(),
+        )
+
     def _on_editor_closed(self, key: str) -> None:
         """Закрытая вкладка отписывается от документа и освобождает сцену."""
         editor = self._section_editors.pop(key, None)
-        if isinstance(editor, (AgentView, MissionView, ProfileEditor, SceneView)):
+        if isinstance(
+            editor,
+            (AgentView, MissionView, ProfileEditor, SceneView, SimulationView),
+        ):
             editor.dispose()
 
     def restore_layout(self) -> int:
