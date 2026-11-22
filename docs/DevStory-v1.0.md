@@ -888,5 +888,27 @@ pytest              749 passed, 1 skipped
 - `mypy --strict` — 118 файлов без ошибок.
 - `pytest` — **803 passed, 1 skipped** (было 749).
 - `simorph version` → 0.11.0.
+- CI GitHub Actions — прогон 45055787479 (`51ea401`): `windows-latest` и
+  `ubuntu-24.04`, Python 3.13.7, все шаги зелёные.
+
+## Грабли поставки
+
+Первый push этапа (`7849dc0`) упал в CI на обеих ОС, причём не на тестах:
+
+- `pyarrow>=18,<22` появился в `pyproject.toml`, но не в
+  `requirements-dev.lock`, из которого CI ставит зависимости. Шаг
+  «Dependency consistency» падал первым:
+  `simorph 0.11.0 requires pyarrow, which is not installed` — до Lint и Tests
+  дело не доходило.
+- Хуже: правило `logs/` в `.gitignore` (для артефактов прогонов) матчило
+  каталог на любой глубине, поэтому весь пакет `src/simorph/core/logs/`
+  не попал в коммит. На ubuntu это дало 6 ошибок `I001`: ruff считал
+  `simorph.core.logs` сторонним модулем, потому что каталога нет; на windows
+  падал `mypy` на импортах отсутствующего пакета. Локально всё было зелёным —
+  файлы лежали на диске, просто вне индекса.
+
+Лечение: `pyarrow==21.0.0` в dev-lock, правило сужено до `/logs/` (как
+`/runs/` и `/artifacts/`), пакет добавлен в коммит. Проверка — свежий клон:
+239 файлов, `ruff check` и `ruff format --check` чистые.
 
 Документация: CHANGELOG 0.11.0, README (раздел «Журнал прогонов», F11, структура), новый `docs/adr/0010-run-logs.md`, WP (статус этапа, строка G9 и раздел «G9: фактические проверки»), `pyarrow>=18,<22` в зависимостях и lock-файле.
