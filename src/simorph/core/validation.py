@@ -23,6 +23,7 @@ from simorph.core.issues import (
 )
 from simorph.core.mission.validation import exercise_issues
 from simorph.core.models.project import ProjectDocument
+from simorph.core.pipeline.validation import pipeline_issues
 from simorph.core.schema_version import CURRENT_VERSION, is_current, is_from_future, is_known
 
 
@@ -157,70 +158,11 @@ def _check_exercises(document: ProjectDocument) -> list[Issue]:
 
 
 def _check_pipelines(document: ProjectDocument) -> list[Issue]:
+    """Порты, граф и параметры каждого конвейера — в отдельном валидаторе."""
     issues: list[Issue] = []
     for pipeline_index, pipeline in enumerate(document.pipelines):
-        prefix = f"pipelines.{pipeline_index}"
-        issues += _duplicates(
-            [(f"{prefix}.nodes.{i}.id", node.id) for i, node in enumerate(pipeline.nodes)]
-        )
-        node_ids = {node.id for node in pipeline.nodes}
-        for edge_index, edge in enumerate(pipeline.edges):
-            for field_name, ref in (("from", edge.src), ("to", edge.dst)):
-                node_id = ref.split(".", 1)[0]
-                if node_id not in node_ids:
-                    issues.append(
-                        issue(
-                            IssueCode.DANGLING_REFERENCE,
-                            f"{prefix}.edges.{edge_index}.{field_name}",
-                            f"узел {node_id!r} не найден в nodes",
-                        )
-                    )
-        issues += _duplicates(
-            [
-                (f"{prefix}.edges.{i}", f"{edge.src}->{edge.dst}")
-                for i, edge in enumerate(pipeline.edges)
-            ]
-        )
-        issues += _pipeline_cycle_issues(prefix, pipeline)
+        issues += pipeline_issues(pipeline, prefix=f"pipelines.{pipeline_index}")
     return issues
-
-
-def _pipeline_cycle_issues(prefix: str, pipeline: Any) -> list[Issue]:
-    """Граф конвейера обязан быть ациклическим (TRD 5.8)."""
-    graph: dict[str, set[str]] = {node.id: set() for node in pipeline.nodes}
-    for edge in pipeline.edges:
-        src = edge.src.split(".", 1)[0]
-        dst = edge.dst.split(".", 1)[0]
-        if src in graph and dst in graph:
-            graph[src].add(dst)
-
-    state: dict[str, int] = {}
-    in_cycle: set[str] = set()
-
-    def visit(node_id: str, path: list[str]) -> None:
-        state[node_id] = 1
-        path.append(node_id)
-        for target in graph.get(node_id, ()):
-            if state.get(target) == 1:
-                in_cycle.update(path[path.index(target) :])
-            elif state.get(target, 0) == 0:
-                visit(target, path)
-        path.pop()
-        state[node_id] = 2
-
-    for node_id in graph:
-        if state.get(node_id, 0) == 0:
-            visit(node_id, [])
-
-    index_by_id = {node.id: index for index, node in enumerate(pipeline.nodes)}
-    return [
-        issue(
-            IssueCode.INVALID_GRAPH,
-            f"{prefix}.nodes.{index_by_id[name]}",
-            "цикл в графе конвейера",
-        )
-        for name in sorted(in_cycle, key=lambda value: index_by_id[value])
-    ]
 
 
 def _check_reports(document: ProjectDocument) -> list[Issue]:
