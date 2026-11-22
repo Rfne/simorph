@@ -231,6 +231,30 @@ simorph pipeline sources  examples/demo/project.json --check   # код 1 при
 даёт статус `stale` со списками изменённых, добавленных и удалённых
 файлов. Решение — `docs/adr/0009-pipelines.md`.
 
+## Журнал прогонов
+
+```bash
+simorph sim run examples/demo/project.json --log run.sqlite   # записать прогон
+simorph pipeline run examples/demo/project.json --log run.sqlite
+simorph runs list run.sqlite --kind pipeline --limit 10       # список
+simorph runs show run.sqlite --last --metric node.src.p95_ms  # ряды
+simorph runs export run.sqlite -o metrics.parquet --format parquet
+simorph runs annotate run.sqlite <run_id> --frame 12 --class-id person
+simorph runs prune run.sqlite --keep-last 20 --dry-run
+```
+
+Журнал — отдельный файл `run.sqlite` рядом с проектом: прогоны неизменяемы
+и растут быстрее документа, поэтому `project.json` остаётся компактным,
+а журнал можно архивировать и чистить отдельно. Схема — шесть таблиц:
+`runs`, `run_events`, `metrics`, `artifacts`, `annotations`, `settings`;
+режим WAL, внешние ключи и индексы по прогону, имени метрики и времени.
+Ряды пишутся батчами по 5000: 10^5 строк записываются меньше секунды,
+а незавершённый батч откатывается целиком. Прогон, оставшийся в статусе
+`running` после kill, при следующем открытии помечается `interrupted` —
+база открывается без ручного ремонта. Экспорт в CSV и Parquet сохраняет
+типы: `id`, `t_ns` и `seed` — целые, `value` — число с плавающей точкой.
+Решение и последствия — `docs/adr/0010-run-logs.md`.
+
 ## Графическая оболочка
 
 ```bash
@@ -289,6 +313,13 @@ JSON-редактор с подсветкой, номерами строк и с
 undo. Внизу — read-only исходники: дерево каталога, текст с подсветкой,
 снимок хэшей и проверка `stale`.
 
+Вкладка «Журналы» (F11, меню «Проект») открывает `run.sqlite` рядом
+с проектом: слева прогоны с фильтрами по виду, статусу и тексту, справа
+ряды выбранного прогона — метрики или события с фильтром по имени,
+префиксу и интервалу времени. Выборка читается в фоновом потоке, поэтому
+интерфейс не замирает на 10^5 строках; текущую выборку можно выгрузить
+в CSV или Parquet.
+
 ## Разработка
 
 ```bash
@@ -307,7 +338,7 @@ pre-commit install
 ```
 src/simorph/
   cli/          командная строка, коды возврата, команды project, profile,
-                world, agent, mission, sim, pipeline и app
+                world, agent, mission, sim, pipeline, runs и app
   core/         схемы разделов, канонизация, миграции, репозиторий, валидатор,
                 доступ к значениям по пути
   core/profile/ спецификация 75 параметров, импорт, проекция, κ/κ+, NDA, экспорт
@@ -320,9 +351,12 @@ src/simorph/
   core/pipeline/ порты и совместимость, реестр узлов, граф и критический путь,
                 валидатор, исполнитель, метрики, швы инференса и ROI,
                 read-only исходники и статус stale
+  core/logs/    схема SQLite, записи прогона и отчётов, хранилище с фильтрами,
+                экспорт CSV/Parquet, импорт отчётов
   ui/           главное окно, дерево, инспектор, вкладки, undo/redo, сессия,
                 панели валидации и поиска, JSON-редактор профиля,
-                вкладки 3D-сцены, агента, миссии, симуляции и конвейеров
+                вкладки 3D-сцены, агента, миссии, симуляции, конвейеров
+                и журналов
   selftest/     самопроверка окружения и Qt
   logging_setup.py  структурированное логирование, redaction
   settings.py   настройки приложения в QSettings

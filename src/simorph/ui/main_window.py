@@ -40,6 +40,7 @@ from simorph.ui import theme
 from simorph.ui.agent_view import AgentView
 from simorph.ui.commands import DocumentStore
 from simorph.ui.inspector import InspectorPanel
+from simorph.ui.logs_view import LogsView
 from simorph.ui.mission_view import MissionView
 from simorph.ui.pipeline_view import PipelineView
 from simorph.ui.profile_editor import ProfileEditor
@@ -55,6 +56,8 @@ from simorph.ui.validation_panel import ValidationPanel
 __all__ = [
     "AGENT_KEY",
     "AGENT_TITLE",
+    "LOGS_KEY",
+    "LOGS_TITLE",
     "MISSION_KEY",
     "MISSION_TITLE",
     "PIPELINE_KEY",
@@ -96,6 +99,10 @@ SIMULATION_TITLE = "Симуляция"
 #: Ключ и заголовок вкладки конвейеров: граф, метрики и исходники.
 PIPELINE_KEY = "pipeline"
 PIPELINE_TITLE = "Конвейеры"
+
+#: Ключ и заголовок вкладки журналов: прогоны, ряды, фильтры и экспорт.
+LOGS_KEY = "logs"
+LOGS_TITLE = "Журналы"
 
 #: Интервал автосохранения, мс.
 AUTOSAVE_INTERVAL_MS = 30_000
@@ -258,6 +265,11 @@ class MainWindow(QMainWindow):
         self.action_pipeline.setToolTip("Граф конвейера, метрики и исходники узлов")
         self.action_pipeline.triggered.connect(lambda: self.open_pipeline())
 
+        self.action_logs = QAction(LOGS_TITLE, self)
+        self.action_logs.setShortcut(QKeySequence("F11"))
+        self.action_logs.setToolTip("Журнал прогонов: ряды, фильтры и экспорт")
+        self.action_logs.triggered.connect(lambda: self.open_logs())
+
         self._theme_group = QActionGroup(self)
         self._theme_actions: dict[str, QAction] = {}
         for name in THEMES:
@@ -303,6 +315,7 @@ class MainWindow(QMainWindow):
         project_menu.addAction(self.action_mission)
         project_menu.addAction(self.action_simulation)
         project_menu.addAction(self.action_pipeline)
+        project_menu.addAction(self.action_logs)
 
         self._rebuild_recent_menu()
 
@@ -323,6 +336,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.action_mission)
         toolbar.addAction(self.action_simulation)
         toolbar.addAction(self.action_pipeline)
+        toolbar.addAction(self.action_logs)
 
         self._filter_edit = QLineEdit()
         self._filter_edit.setPlaceholderText("фильтр дерева")
@@ -405,6 +419,9 @@ class MainWindow(QMainWindow):
         if isinstance(pipeline, PipelineView):
             pipeline.set_project_path(self._session.path)
             pipeline.rebuild(self._store.document)
+        logs = self._section_editors.get(LOGS_KEY)
+        if isinstance(logs, LogsView):
+            logs.set_project_path(self._session.path)
 
     def _refresh_issues(self) -> None:
         self._issues = validate_document(self._store.document)
@@ -505,6 +522,12 @@ class MainWindow(QMainWindow):
         view = self._section_editors.get(PIPELINE_KEY)
         return view if isinstance(view, PipelineView) else None
 
+    @property
+    def logs_view(self) -> LogsView | None:
+        """Открытая вкладка журналов или ``None``."""
+        view = self._section_editors.get(LOGS_KEY)
+        return view if isinstance(view, LogsView) else None
+
     # --- навигация -------------------------------------------------------
 
     def navigate_to(self, path: str) -> None:
@@ -559,6 +582,7 @@ class MainWindow(QMainWindow):
             self._make_simulation_view(),
         )
         factories[PIPELINE_KEY] = lambda: (PIPELINE_TITLE, self._make_pipeline_view())
+        factories[LOGS_KEY] = lambda: (LOGS_TITLE, self._make_logs_view())
         return factories
 
     def _make_section(self, section: str) -> QWidget:
@@ -647,12 +671,34 @@ class MainWindow(QMainWindow):
             self._make_pipeline_view(),
         )
 
+    def _make_logs_view(self) -> LogsView:
+        view = LogsView(self._settings)
+        view.set_project_path(self._session.path)
+        self._section_editors[LOGS_KEY] = view
+        return view
+
+    def open_logs(self) -> int:
+        """Открывает вкладку журналов или активирует уже открытую."""
+        existing = self._tabs.index_of(LOGS_KEY)
+        if existing >= 0:
+            self._tabs.setCurrentIndex(existing)
+            return existing
+        return self._tabs.open_editor(LOGS_KEY, LOGS_TITLE, self._make_logs_view())
+
     def _on_editor_closed(self, key: str) -> None:
         """Закрытая вкладка отписывается от документа и освобождает сцену."""
         editor = self._section_editors.pop(key, None)
         if isinstance(
             editor,
-            (AgentView, MissionView, PipelineView, ProfileEditor, SceneView, SimulationView),
+            (
+                AgentView,
+                LogsView,
+                MissionView,
+                PipelineView,
+                ProfileEditor,
+                SceneView,
+                SimulationView,
+            ),
         ):
             editor.dispose()
 
@@ -802,6 +848,9 @@ class MainWindow(QMainWindow):
         pipeline = self._section_editors.get(PIPELINE_KEY)
         if isinstance(pipeline, PipelineView):
             pipeline.set_project_path(self._session.path)
+        logs = self._section_editors.get(LOGS_KEY)
+        if isinstance(logs, LogsView):
+            logs.set_project_path(self._session.path)
         self._status_label.setText(f"сохранено: {path}")
         return True
 

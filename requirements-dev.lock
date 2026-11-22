@@ -137,6 +137,8 @@ pre-commit==4.7.0
     # via simorph (pyproject.toml)
 prettytable==3.19.0
     # via pip-licenses
+pyarrow==21.0.0
+    # via simorph (pyproject.toml)
 pybullet==3.2.7
     # via simorph (pyproject.toml)
 pydantic==2.14.4

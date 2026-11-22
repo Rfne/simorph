@@ -16,6 +16,7 @@ from simorph.cli.mission import build_mission_parser, run_mission_command
 from simorph.cli.pipeline import build_pipeline_parser, run_pipeline_command
 from simorph.cli.profile import build_profile_parser, run_profile_command
 from simorph.cli.project import build_project_parser, run_project_command
+from simorph.cli.runs import build_runs_parser, run_runs_command
 from simorph.cli.sim import build_sim_parser, run_sim_command
 from simorph.cli.world import build_world_parser, run_world_command
 from simorph.core.errors import SimorphError
@@ -96,6 +97,7 @@ def build_parser() -> argparse.ArgumentParser:
     build_mission_parser(subparsers)
     build_sim_parser(subparsers)
     build_pipeline_parser(subparsers)
+    build_runs_parser(subparsers)
 
     app_command = subparsers.add_parser("app", help="открыть графическую оболочку")
     _add_common_options(app_command)
@@ -210,6 +212,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return run_sim_command(args, as_json=as_json, logger=logger)
         if args.command == "pipeline":
             return run_pipeline_command(args, as_json=as_json, logger=logger)
+        if args.command == "runs":
+            return run_runs_command(args, as_json=as_json, logger=logger)
         if args.command == "app":
             from simorph.ui.app import run_app
 

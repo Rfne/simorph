@@ -84,6 +84,8 @@ param==2.4.2
     #   pyviz-comms
 pillow==13.0.0
     # via bokeh
+pyarrow==21.0.0
+    # via simorph (pyproject.toml)
 pybullet==3.2.7
     # via simorph (pyproject.toml)
 pydantic==2.14.4

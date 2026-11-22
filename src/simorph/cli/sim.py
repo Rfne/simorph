@@ -19,7 +19,9 @@ from typing import Any
 
 from simorph.cli.exit_codes import ExitCode
 from simorph.cli.project import add_common_options
+from simorph.core.canonical import compute_hash
 from simorph.core.errors import ProjectError
+from simorph.core.logs import record_to_file
 from simorph.core.models.agent import AgentSection
 from simorph.core.models.exercise import ExerciseSection, Mission
 from simorph.core.models.project import ProjectDocument
@@ -30,6 +32,7 @@ from simorph.core.simulation import (
     SimulationRunner,
     replay_stream,
 )
+from simorph.version import __version__
 
 __all__ = ["build_sim_parser", "run_sim_command"]
 
@@ -62,6 +65,12 @@ def build_sim_parser(subparsers: Any) -> None:
     run_parser.add_argument("--slowdown", type=float, default=1.0, help="замедление ступени, раз")
     run_parser.add_argument("--record", type=Path, default=None, help="записать поток кадров")
     run_parser.add_argument("--report", type=Path, default=None, help="записать отчёт JSON")
+    run_parser.add_argument(
+        "--log",
+        type=Path,
+        default=None,
+        help="записать прогон в журнал SQLite (путь к run.sqlite)",
+    )
     run_parser.add_argument(
         "--no-pace",
         action="store_true",
@@ -144,8 +153,21 @@ def _cmd_run(args: argparse.Namespace, *, as_json: bool, logger: logging.Logger)
         report = runner.run()
     finally:
         runner.close()
+    logged: dict[str, Any] | None = None
+    if args.log is not None:
+        logged = record_to_file(
+            args.log,
+            report,
+            kind="simulation",
+            project_hash=compute_hash(document),
+            exercise_id=exercise.exercise_id,
+            app_version=__version__,
+        )
     if as_json:
-        _write_json(report.to_dict())
+        payload = report.to_dict()
+        if logged is not None:
+            payload["log"] = logged
+        _write_json(payload)
     else:
         _write(report.summary())
         _write(
@@ -160,6 +182,8 @@ def _cmd_run(args: argparse.Namespace, *, as_json: bool, logger: logging.Logger)
             _write(f"состояние: {report.status}")
         if report.reason:
             _write(f"причина: {report.reason}")
+        if logged is not None:
+            _write(f"журнал: {logged['run_id']} · строк {logged['metrics']} метрик")
     if not report.ok:
         logger.error("прогон не завершён: %s (%s)", report.state, report.reason)
         return int(ExitCode.DATA_ERROR)

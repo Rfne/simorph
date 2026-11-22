@@ -20,8 +20,10 @@ from typing import Any
 
 from simorph.cli.exit_codes import ExitCode
 from simorph.cli.project import add_common_options
+from simorph.core.canonical import compute_hash
 from simorph.core.errors import ProjectError
 from simorph.core.issues import Severity, issues_to_payload
+from simorph.core.logs import record_to_file
 from simorph.core.models.pipeline import PipelineSection
 from simorph.core.models.project import ProjectDocument
 from simorph.core.pipeline import (
@@ -39,6 +41,7 @@ from simorph.core.pipeline import (
     snapshot_path,
 )
 from simorph.core.repository import load_project
+from simorph.version import __version__
 
 __all__ = ["build_pipeline_parser", "run_pipeline_command"]
 
@@ -84,6 +87,12 @@ def build_pipeline_parser(subparsers: Any) -> None:
         "--backend",
         default="stub",
         help="бэкенд инференса: stub, onnx, openvino, rknn, nbg",
+    )
+    run_parser.add_argument(
+        "--log",
+        type=Path,
+        default=None,
+        help="записать прогон в журнал SQLite (путь к run.sqlite)",
     )
 
     sources_parser = actions.add_parser("sources", help="дерево исходников и устаревание")
@@ -218,8 +227,20 @@ def _cmd_run(args: argparse.Namespace, *, as_json: bool, logger: logging.Logger)
         report = runner.run()
     finally:
         runner.close()
+    logged: dict[str, Any] | None = None
+    if args.log is not None:
+        logged = record_to_file(
+            args.log,
+            report,
+            kind="pipeline",
+            project_hash=compute_hash(document),
+            app_version=__version__,
+        )
     if as_json:
-        _write_json(report.to_dict())
+        payload = report.to_dict()
+        if logged is not None:
+            payload["log"] = logged
+        _write_json(payload)
     else:
         _write(report.summary())
         for name, item in report.metrics.nodes.items():
@@ -229,6 +250,8 @@ def _cmd_run(args: argparse.Namespace, *, as_json: bool, logger: logging.Logger)
             )
         if report.reason:
             _write(f"причина: {report.reason}")
+        if logged is not None:
+            _write(f"журнал: {logged['run_id']} · строк {logged['metrics']} метрик")
     if not report.ok:
         logger.error("прогон конвейера не завершён: %s", report.reason)
         return int(ExitCode.DATA_ERROR)

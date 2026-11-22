@@ -38,10 +38,10 @@ coverage.xml
 htmlcov/
 .tox/
 
-# Артефакты simorph
-artifacts/
-runs/
-logs/
+# Артефакты simorph (только в корне: пакет core/logs — часть исходников)
+/artifacts/
+/runs/
+/logs/
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
