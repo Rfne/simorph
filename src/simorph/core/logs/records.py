@@ -36,7 +36,7 @@ __all__ = [
 ]
 
 #: Вид прогона в журнале.
-RUN_KINDS: tuple[str, ...] = ("simulation", "pipeline")
+RUN_KINDS: tuple[str, ...] = ("simulation", "pipeline", "dataset", "training", "evaluation")
 
 #: Статусы прогона, которые пишет журнал.
 RUN_STATUSES: tuple[str, ...] = ("running", "finished", "interrupted", "failed")

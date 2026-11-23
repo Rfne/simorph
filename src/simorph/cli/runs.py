@@ -23,6 +23,7 @@ from simorph.cli.exit_codes import ExitCode
 from simorph.cli.project import add_common_options
 from simorph.core.errors import ProjectError
 from simorph.core.logs import (
+    RUN_KINDS,
     AnnotationRow,
     ExportResult,
     RunStore,
@@ -47,7 +48,7 @@ def build_runs_parser(subparsers: Any) -> None:
     list_parser = actions.add_parser("list", help="список прогонов")
     add_common_options(list_parser)
     list_parser.add_argument("path", type=Path, help="путь к project.json или run.sqlite")
-    list_parser.add_argument("--kind", choices=("simulation", "pipeline"), default=None)
+    list_parser.add_argument("--kind", choices=RUN_KINDS, default=None)
     list_parser.add_argument("--status", default=None, help="running, finished, interrupted")
     list_parser.add_argument("--pipeline", dest="pipeline_id", default=None)
     list_parser.add_argument("--mission", dest="mission_id", default=None)

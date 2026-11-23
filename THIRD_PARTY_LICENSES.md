@@ -34,6 +34,7 @@ PySide6, лицензия LGPLv3 (двойная: LGPL-3.0 / GPL-2.0 / GPL-3.0, 
 | MarkupSafe | 3.0.4 | BSD-3-Clause |
 | mdit-py-plugins | 0.7.0 | MIT License |
 | mdurl | 0.1.2 | MIT License |
+| ml_dtypes | 0.7.0 | Apache-2.0 |
 | mpmath | 1.3.0 | BSD License |
 | mypy | 2.4.1 | MIT |
 | mypy_extensions | 1.2.0 | MIT |
@@ -42,6 +43,7 @@ PySide6, лицензия LGPLv3 (двойная: LGPL-3.0 / GPL-2.0 / GPL-3.0, 
 | nh3 | 0.3.8 | MIT |
 | nodeenv | 1.12.0 | BSD License |
 | numpy | 2.5.5 | BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0 |
+| onnx | 1.23.2 | Apache-2.0 |
 | opencv-contrib-python | 5.1.0.95 | Apache Software License |
 | openvino | 2026.4.1 | Apache-2.0 |
 | openvino-telemetry | 2025.2.0 | Apache Software License |
@@ -56,6 +58,7 @@ PySide6, лицензия LGPLv3 (двойная: LGPL-3.0 / GPL-2.0 / GPL-3.0, 
 | platformdirs | 4.14.8 | MIT |
 | pluggy | 1.7.0 | MIT License |
 | pre_commit | 4.7.0 | MIT |
+| protobuf | 7.36.2 | 3-Clause BSD License |
 | pyarrow | 21.0.0 | Apache Software License |
 | pybullet | 3.2.7 | zlib/libpng License |
 | pydantic | 2.14.4 | MIT |
