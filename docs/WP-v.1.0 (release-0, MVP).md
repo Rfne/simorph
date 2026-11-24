@@ -782,7 +782,7 @@ kill процесса оставляет `integrity_check = ok`, а прогон
 | G8 | 2026-11-22 | 7 из 7: G8-01…G8-07 пройдены. Несовместимое ребро блокируется с подписями обоих портов, дубль и цикл — тоже; разреженный контур даёт 4,8 мс плана на кадр (ориентир 5 мс), нейросетевой — p95 инференса 380 мс (ориентир 400 мс); граф переоткрывается без потерь, правки идут одной командой undo; изменение файла после снимка даёт `stale` со списком изменённых, добавленных и удалённых файлов; отчёт содержит метки `t_fsin_ns`/`t_monotonic_ns`, p50/p95/max по узлам, глубину и ожидание очереди, отброшенные кадры; замена бэкенда инференса не меняет вызывающий код | — | — | Гейт закрыт |
 | G9 | 2026-11-22 | 6 из 6: G9-01…G9-06 пройдены. Прогон создаёт записи в `runs`, `run_events`, `metrics`, `artifacts` и `annotations`; 10^5 метрик записаны за 0,7 с батчами по 5000 без потерь; фильтр по имени и интервалу из 10^5 даёт выборку за 4,2 мс, интерфейс читает её в фоновом потоке; CSV 100 000 строк (3,6 МБ) и Parquet (1,2 МБ) читаются pandas без потери типов (`id`, `t_ns` — `int64`, `value` — `float64`); kill процесса через `os._exit(9)` после 20 000 строк: `integrity_check` — `ok`, прогон `interrupted`, закоммиченные батчи на месте; `runs list|show|export|annotate|prune` работают без GUI; CI GitHub Actions, прогон 45055787479 (`51ea401`), зелёный на `windows-latest` и `ubuntu-24.04`, Python 3.13.7 — все шаги, включая Tests | — | — | Гейт закрыт |
 | G10 | 2026-11-23 | 6 из 6: G10-01…G10-06 пройдены. Датасет 4 сцены × 80 кадров: 379 кадров (train 300, val 79), 1167 рамок (tank 690, pump 121, column 356), сборка 3,4 с; хэш манифеста не зависит от времени сборки и номера прогона, воспроизводится по seed (`b32733f616f0`), другой seed даёт другой хэш; рамка каждого объекта — точный охват его пикселей в маске; пересечение сцен train и val пусто; аугментация воспроизводится по `(seed, номер кадра)`; обучение 120 эпох за 136 с на двух потоках CPU даёт mAP@0.5 = 0,642 (tank 0,73, pump 0,70, column 0,50) при пороге 0,60; метрики `train.*` и `eval.*` читаются из `run.sqlite`, чекпойнт и манифест — артефакты прогона; ONNX 380 КБ, расхождение с PyTorch 1·10⁻⁶ при допуске 1e-4 (эталонная реализация ONNX; OpenVINO на AVX-512 раннере даёт 1,2·10⁻² — свойство ядер, а не графа); цикл `dataset → train → eval → export-onnx` выполняется без GUI и пишет три прогона в журнал | — | — | Гейт закрыт |
-| G11 | — | — | — | — | — |
+| G11 | 2026-11-24 | 8 из 8: G11-01…G11-08 пройдены. Отчёт по прогону собирается за 0,08 с: Markdown 4,4 КБ и HTML 27 КБ с шестью графиками как data-URI — ни одной внешней ссылки, ни `script`, ни `link`; PDF 173 КБ, `%PDF-1.4`, кириллица и таблицы через Qt в offscreen. Пороги дают `fail` при `k.p95` = 1,4 и пороге 1,0 и `ok` при 1,5; шаблон с `*` берёт худшее значение среди совпавших рядов; отсутствующая метрика — `INFO`, а не сбой. Конструктор: две панели, предпросмотр 0,08 с, снятая секция исчезает из готового HTML, порог меняет вывод. Манифест `simorph-package/1` валиден, отвергает лишние поля, дубли моделей и битый sha256; `manifest_hash` не зависит от `created_at` и порядка ключей. Пакеты RK3588 и A733 собираются за 0,03 с: по 5 файлов, `checksums.sha256` сходится, подмена модели и лишний файл ловятся; без целевой модели — предупреждение, без SDK — код 2. CLI `report`, `export-package`, `verify-package` и `dashboard` работают без GUI. Дашборд собирается за 1,2 с: 3 виджета, 1 блок LaTeX, `pn.config.inline`, только `127.0.0.1`; `--check` проверяет его без браузера | — | — | Гейт закрыт |
 | G12 | — | — | — | — | — |
 
 #### G0: фактические проверки
@@ -1285,6 +1285,93 @@ kill процесса оставляет `integrity_check = ok`, а прогон
 - Набор: `pytest` — 835 passed, 1 skipped (проверка прав файловой системы
   пропускается на Windows); `ruff check`, `ruff format --check`,
   `mypy` (strict, 133 файла) — без замечаний.
+
+#### G11: фактические проверки
+
+Стенд тот же. Отчёт, пакеты и журнал — во временных каталогах; проверки
+идут через `main()`, то есть тем же путём, что и команда `simorph`.
+Данные — прогон `sim-report` из фикстуры: `k.p50` = 1,2, `k.p95` = 1,4,
+`eval.map50` = 0,64, `eval.latency_p95_ms` = 380, две ступени.
+
+- G11-01 — отчёт: `render_report` собирает Markdown (4 422 Б) и HTML
+  (27 022 Б) за 0,08 с; в HTML шесть графиков как `data:image/png;base64`,
+  нет `http`, `<script` и `<link`; Markdown ссылается на `plots/*.png`,
+  а файлы PNG лежат рядом; PDF — 176 848 Б с сигнатурой `%PDF-1.4`;
+  пользовательский шаблон подхватывается, отсутствующий даёт `INFO`
+  о подмене, битый — `ReportTemplateError` (`test_render_markdown_and_html`,
+  `test_html_is_offline`, `test_sections_filter_output`,
+  `test_custom_template_is_used`, `test_missing_template_falls_back_with_note`,
+  `test_broken_template_is_data_error`, `test_render_report_files_from_database`,
+  `test_pdf_export`).
+- G11-02 — пороги: при `k.p95` = 1,4 и пороге 1,0 вывод `fail`, при 1,5 —
+  `ok`; шаблон `stage.*.actual_ms` берёт худшее значение; отсутствующая
+  метрика даёт `INFO`, а не исключение; секция масштаба заполняется
+  из пар `stage.<имя>.plan_ms/.actual_ms` (`test_derive_conclusions_follow_values`,
+  `test_threshold_text_matches_value`, `test_threshold_prefix_uses_worst_value`,
+  `test_missing_metric_is_informational`,
+  `test_conclusions_without_metrics_are_informational`,
+  `test_collect_scale_section_and_stages`).
+- G11-03 — конструктор: `ReportView` — `QSplitter` из двух панелей,
+  предпросмотр заполняется HTML прогона, снятая секция `metrics` исчезает
+  из документа, порог 1,0 даёт `level-fail`, сборка укладывается в 0,08 с
+  при пороге 1 с; `dispose` удаляет каталог предпросмотра
+  (`test_report_view_has_two_panels`, `test_report_view_preview_under_one_second`,
+  `test_report_view_sections_toggle`,
+  `test_report_view_threshold_drives_conclusions`,
+  `test_report_view_formats_and_dispose`).
+- G11-04 — манифест: `simorph-package/1` валиден по схеме с `extra="forbid"`,
+  отвергает лишние поля, дубли моделей, отрицательные бюджеты и sha256
+  не из 64 hex; `manifest_hash` не зависит от `created_at` и порядка
+  ключей, переживает round-trip YAML; сверка профиля ловит чужой SoC,
+  проверка — подменённый и отсутствующий файл
+  (`test_manifest_rejects_unknown_fields`, `test_manifest_rejects_duplicate_models`,
+  `test_manifest_rejects_bad_hash`, `test_budgets_must_be_positive`,
+  `test_manifest_hash_ignores_creation_time`,
+  `test_manifest_hash_is_stable_across_dict_order`,
+  `test_manifest_round_trip_yaml`, `test_check_profile_detects_mismatch`,
+  `test_verify_manifest_detects_tampered_file`,
+  `test_verify_manifest_reports_missing_file_and_bad_yaml`).
+- G11-05 — пакет: RK3588 и A733 собираются за 0,03 с, по 5 файлов
+  (манифест, ONNX, конвейер, скрипт, `checksums.sha256`); суммы сходятся,
+  подмена модели и лишний файл обнаруживаются; сборка детерминирована
+  при фиксированном `created_at`; без целевой модели — предупреждение,
+  без вендорского SDK — `ok=False` и код 2; скрипты конвертации
+  самодостаточны (`test_build_package_for_both_boards`,
+  `test_package_checksums_and_manifest_verify`,
+  `test_checksums_detect_tampering`, `test_checksums_detect_unlisted_file`,
+  `test_package_is_deterministic`, `test_generated_pipeline_is_marked`,
+  `test_package_id_for_run`, `test_conversion_without_toolchain_is_reported`,
+  `test_build_with_convert_does_not_fail_without_toolchain`,
+  `test_package_scripts_are_standalone`).
+- G11-06 — CLI: `report` пишет MD, HTML и PNG, понимает `--sections`,
+  `--format`, `--threshold` и `--json`, на отсутствующий журнал и кривой
+  порог даёт код 1; `export-package` собирает два борта одним вызовом,
+  `--json` печатает статус сумм, `verify-package` находит подмену
+  и отсутствующий пакет; справка перечисляет новые команды
+  (`test_report_command_writes_files`, `test_report_command_json`,
+  `test_report_command_sections`, `test_report_command_errors`,
+  `test_report_command_rejects_bad_threshold`, `test_export_package_two_targets`,
+  `test_export_package_json_and_verify`, `test_export_package_requires_model`,
+  `test_verify_package_detects_tampering`, `test_verify_package_absent`,
+  `test_cli_help_lists_new_commands`).
+- G11-07 — дашборд: `build_dashboard` собирается за 1,2 с (порог 3 с),
+  в дереве три виджета — прогон, порог p95 и «только деградация»;
+  LaTeX-блок один и содержит `\kappa = t_actual / t_plan` и `k.p95` = 1,40;
+  сводка печатает таблицу метрик и «план/факт» по ступеням; `--check`
+  повторяет это без браузера и отдаёт JSON (`test_dashboard_builds_under_three_seconds`,
+  `test_dashboard_summary_has_latex_and_tables`, `test_latex_kappa_has_plan_fact`,
+  `test_dashboard_check_cli`).
+- G11-08 — offline и конфигурация: `pn.config.inline` включён, в блоках
+  нет `http`; `dash_run.yaml` задаёт заголовок, прогоны, секции, пороги
+  и порт, а хост кроме `127.0.0.1`/`localhost` отвергается; отсутствующий
+  файл и неизвестный прогон дают код 1 с сообщением
+  (`test_dashboard_is_offline`, `test_dashboard_config_from_yaml`,
+  `test_dashboard_config_rejects_remote_host`,
+  `test_dashboard_config_missing_file`, `test_dashboard_cli_missing_run`,
+  `test_dashboard_data_missing_run`).
+- Набор: `pytest` — 916 passed, 1 skipped (проверка прав файловой системы
+  пропускается на Windows); `ruff check`, `ruff format --check`,
+  `mypy` (strict, 156 файлов) — без замечаний.
 
 ---
 

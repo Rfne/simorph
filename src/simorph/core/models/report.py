@@ -9,7 +9,7 @@ from pydantic import Field, StringConstraints
 from simorph.core.models.base import EntityId, RelativePath, SectionModel
 
 #: Секция отчёта.
-ReportSectionName = Literal["metadata", "config", "metrics", "plots", "conclusions"]
+ReportSectionName = Literal["metadata", "config", "metrics", "plots", "conclusions", "scale"]
 
 #: Формат экспорта.
 ExportFormat = Literal["md", "html", "pdf"]

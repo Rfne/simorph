@@ -44,6 +44,7 @@ from simorph.ui.logs_view import LogsView
 from simorph.ui.mission_view import MissionView
 from simorph.ui.pipeline_view import PipelineView
 from simorph.ui.profile_editor import ProfileEditor
+from simorph.ui.report_view import ReportView
 from simorph.ui.scene_view import SceneView
 from simorph.ui.search_panel import SearchPanel
 from simorph.ui.section_editor import SectionEditor
@@ -586,10 +587,14 @@ class MainWindow(QMainWindow):
         return factories
 
     def _make_section(self, section: str) -> QWidget:
-        """Создаёт редактор раздела: профиль — свой, остальные — общий."""
+        """Создаёт редактор раздела: профиль — свой, отчёты — конструктор."""
         editor: QWidget
         if section == "profile":
             editor = ProfileEditor(self._store, self._settings)
+        elif section == "reports":
+            report_view = ReportView(self._settings)
+            report_view.set_project_path(self._session.path)
+            editor = report_view
         else:
             tree_editor = SectionEditor(self._model, section)
             tree_editor.navigate_requested.connect(self.navigate_to)
@@ -696,6 +701,7 @@ class MainWindow(QMainWindow):
                 MissionView,
                 PipelineView,
                 ProfileEditor,
+                ReportView,
                 SceneView,
                 SimulationView,
             ),

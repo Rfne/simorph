@@ -1004,3 +1004,67 @@ pytest              749 passed, 1 skipped
 на обеих ОС прошёл.
 
 Документация: CHANGELOG 0.12.0, README (раздел «Датасет и дообучение», структура), новый `docs/adr/0011-dataset-training.md`, WP (статус этапа, строка G10, раздел «G10: фактические проверки»), `onnx>=1.17,<2` в зависимостях и lock-файлах.
+
+# Этап 11. Отчёт, дашборд и экспорт на борт
+
+Этап 11 завершён, гейт G11 закрыт. Версия — 0.13.0.
+
+## Что сделано
+
+**Ядро `core/report/`** (без Qt):
+- `schema.py` — `ReportConfig` с проверкой секций (`metadata`, `config`, `metrics`, `plots`, `conclusions`, `scale`) и форматов (`md`, `html`, `pdf`), `MetricSeries` со статистикой (p50/p95/max по рангу `ceil(p·n)`), `StageFact`, `ScaleRow`, `Conclusion`, `ReportData`, `ReportResult`.
+- `collect.py` — чтение прогона из `run.sqlite`: метаданные, конфигурация, ряды, артефакты; ступени собираются из пар `stage.<имя>.plan_ms/.actual_ms`, секция масштаба — из `k.*` и интервалов.
+- `plots.py` — свой PNG-рендер с растровым шрифтом 5×7: линейные ряды, гистограммы, столбики, диаграмма план/факт; `Chart.data_uri()`.
+- `conclusions.py` — пороги `k.p95`, `frames.dropped`, `eval.map50`, `eval.latency_p95_ms`; шаблоны имён с `*` сопоставляются полным совпадением и берут худшее значение.
+- `render.py` — Jinja2-шаблоны, Markdown со ссылками на `plots/*.png`, автономный HTML (PNG как data-URI), перекрытие пользовательским шаблоном.
+- `pdf.py` — `QPdfWriter` + `QTextDocument` в offscreen: кириллица и таблицы без ручной вёрстки.
+- `templates/run_report.md.j2`, `run_report.html.j2` — встроенные шаблоны, входят в дистрибутив.
+
+**Ядро `core/package/`:**
+- `profiles.py` — RK3588 (RKNN-Toolkit2, 6 TOPS, 4×A76 + 4×A55) и A733 (ACUITY/NBG, 3 TOPS, 2×A76 + 6×A55), бюджеты `inference_p95_ms: 400`, `memory_mb: 512`.
+- `manifest.py` — `simorph-package/1`, pydantic с `extra="forbid"`, sha256 каждого файла, `manifest_hash` без полей происхождения, сверка профиля и загрузка.
+- `checksums.py` — формат `sha256sum`, проверка ловит подменённый и лишний файл.
+- `scripts.py`, `convert.py` — самодостаточные `convert_rknn.py`/`convert_nbg.py` и памятка; конвертация отдельным шагом, без SDK — `ok=False` и код 2.
+- `builder.py` — `PKG-<run8>-<target>`, модели, конвейер, калибровка, скрипт, манифест, суммы; отсутствующая целевая модель — предупреждение.
+
+**Ядро `core/dashboard/`:** `config.py` (`dash_*.yaml`, только локальный хост), `data.py` (прогоны и `ReportData` из журнала), `app.py` (Panel: выбор прогона, ползунок порога, галочка, `pn.depends`, LaTeX), `server.py` (`127.0.0.1`, inline-ресурсы).
+
+**CLI:** `report` (`--sections`, `--format`, `--threshold`, `--template`, `--json`), `export-package` (повторяемые `--target`/`--model`, `--convert`), `verify-package`, `dashboard` (`--run`, `--config`, `--port`, `--no-browser`, `--check`).
+
+**UI:** вкладка «Отчёт» — `QSplitter` из двух панелей: слева прогон, секции, форматы и порог, справа `QTextBrowser` с тем же HTML, что уходит в файл.
+
+**Примеры:** `examples/demo/templates/run_report.j2`, `examples/demo/reports/dash_run.py`, `examples/demo/reports/dash_run.yaml`.
+
+**Тесты (73 новых):** `test_report.py` (15), `test_report_export.py` (8), `test_target_manifest.py` (15), `test_export_bundle.py` (15), `test_cli_report_package.py` (11), `test_report_view.py` (6), `test_dashboard.py` (11).
+
+## Дефекты, найденные по ходу
+
+| Что | Как проявилось | Лечение |
+|---|---|---|
+| `render_report` не создавал каталог отчёта | CLI `report -o out` падал с `FileNotFoundError` — каталог создавался только под `plots/` | `target.mkdir(parents=True, exist_ok=True)` до записи файлов |
+| Тест справки ждал код возврата | `main(["--help"])` выходит через `SystemExit(0)` из argparse, а не возвращает `int` | проверка переведена на `main([])` — путь, который действительно возвращает код 1 |
+| `type: ignore[import-not-found]` на `rknn` | после override в mypy комментарий стал «unused ignore» и валил strict-прогон | комментарий убран: отсутствие пакета описывает override |
+| `Widget.name` в Panel 1.10 | `PendingDeprecationWarning` на каждом виджете | виджеты создаются с `label=`, тест проверяет подписи |
+| Шаблоны не попадали в дистрибутив | `package-data` содержал только `py.typed`: из wheel встроенный отчёт не нашёл бы `.j2` | добавлено `core/report/templates/*.j2` |
+
+## Факты для G11
+
+| Проверка | Результат |
+|---|---|
+| G11-01 отчёт | **0,08 с**; Markdown 4,4 КБ, HTML 27 КБ, 6 графиков как data-URI, 0 внешних ссылок; PDF 173 КБ, `%PDF-1.4` |
+| G11-02 пороги | `k.p95` = 1,4 при пороге 1,0 → `fail`, при 1,5 → `ok`; `stage.*` берёт худшее значение |
+| G11-03 конструктор | две панели, предпросмотр **0,08 с** при пороге 1 с, снятая секция исчезает из HTML |
+| G11-04 манифест | схема с `extra="forbid"`, хэш не зависит от `created_at` и порядка ключей, подмена и пропажа файла ловятся |
+| G11-05 пакет | RK3588 и A733 за **0,03 с**, по 5 файлов, суммы сходятся; без SDK — код 2 |
+| G11-06 CLI | `report`, `export-package`, `verify-package`, `dashboard` без GUI; коды 0/1/2 как заявлено |
+| G11-07 дашборд | сборка **1,2 с** при пороге 3 с, 3 виджета, 1 блок LaTeX, `--check` без браузера |
+| G11-08 offline | `pn.config.inline`, 0 `http` в блоках, хост кроме `127.0.0.1` отвергается |
+
+## Проверки
+
+- `ruff check` — без замечаний, `ruff format --check` — 250 файлов.
+- `mypy --strict` — 156 файлов без ошибок.
+- `pytest` — **916 passed, 1 skipped** (было 835).
+- `simorph version` → 0.13.0.
+
+Документация: CHANGELOG 0.13.0, README (разделы «Отчёт по прогону», «Дашборд прогона», «Пакет для борта», вкладка «Отчёт», структура), новый `docs/adr/0012-report-dashboard-package.md`, WP (строка G11 и раздел «G11: фактические проверки»), `package-data` для шаблонов отчёта.

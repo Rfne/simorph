@@ -1,0 +1,16 @@
+# Конфигурация дашборда прогонов (TRD 5.12).
+# runs: пусто — последние прогоны журнала; можно перечислить идентификаторы.
+title: Дашборд прогонов демо-проекта
+runs: []
+limit: 10
+sections:
+  - metrics
+  - plots
+  - conclusions
+  - scale
+thresholds:
+  inference_p95_ms: 400
+  k_p95: 1.5
+host: 127.0.0.1
+port: 5006
+open_browser: true

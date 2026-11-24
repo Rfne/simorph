@@ -11,11 +11,14 @@ from pathlib import Path
 from typing import NoReturn
 
 from simorph.cli.agent import build_agent_parser, run_agent_command
+from simorph.cli.dashboard import build_dashboard_parser, run_dashboard_command
 from simorph.cli.exit_codes import ExitCode
 from simorph.cli.mission import build_mission_parser, run_mission_command
+from simorph.cli.package import build_package_parser, run_package_command
 from simorph.cli.pipeline import build_pipeline_parser, run_pipeline_command
 from simorph.cli.profile import build_profile_parser, run_profile_command
 from simorph.cli.project import build_project_parser, run_project_command
+from simorph.cli.report import build_report_parser, run_report_command
 from simorph.cli.runs import build_runs_parser, run_runs_command
 from simorph.cli.sim import build_sim_parser, run_sim_command
 from simorph.cli.training import (
@@ -104,6 +107,9 @@ def build_parser() -> argparse.ArgumentParser:
     build_pipeline_parser(subparsers)
     build_runs_parser(subparsers)
     build_training_parser(subparsers)
+    build_report_parser(subparsers)
+    build_package_parser(subparsers)
+    build_dashboard_parser(subparsers)
 
     app_command = subparsers.add_parser("app", help="открыть графическую оболочку")
     _add_common_options(app_command)
@@ -224,6 +230,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             return run_dataset_command(args, as_json=as_json, logger=logger)
         if args.command in {"train", "eval", "export-onnx"}:
             return run_train_command(args, as_json=as_json, logger=logger)
+        if args.command == "report":
+            return run_report_command(args, as_json=as_json, logger=logger)
+        if args.command in {"export-package", "verify-package"}:
+            return run_package_command(args, as_json=as_json, logger=logger)
+        if args.command == "dashboard":
+            return run_dashboard_command(args, as_json=as_json, logger=logger)
         if args.command == "app":
             from simorph.ui.app import run_app
 

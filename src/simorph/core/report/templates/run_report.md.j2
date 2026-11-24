@@ -1,0 +1,101 @@
+{% set report = config -%}
+# {{ report.title }}
+
+**Прогон:** `{{ data.run_id }}` ({{ data.kind }}) · **Статус:** {{ data.run.status }}
+**Начат:** {{ data.run.started_at }} · **Завершён:** {{ data.run.finished_at or "—" }}
+**Отчёт:** {{ report.report_id }} · **Сформирован:** {{ data.generated_at }}
+{% if data.app_version %}
+**Версия приложения:** {{ data.app_version }}
+{% endif %}
+{% if data.project_hash %}
+**Хэш проекта:** `{{ data.project_hash }}`
+{% endif %}
+{% if data.database %}
+**Источник:** `{{ data.database }}`
+{% endif %}
+
+{% if "metadata" in report.sections %}
+## 1. Метаданные прогона
+
+| Поле | Значение |
+|---|---|
+| Идентификатор | `{{ data.run_id }}` |
+| Вид | {{ data.kind }} |
+| Статус | {{ data.run.status }} |
+| Seed | {{ data.run.seed if data.run.seed is not none else "—" }} |
+| Объект | {{ data.run.pipeline_id or data.run.mission_id or data.run.exercise_id or "—" }} |
+| Событий | {{ data.events }} |
+| Метрик | {{ data.series | length }} |
+| Артефактов | {{ data.artifacts | length }} |
+{% if data.run.reason %}
+| Причина | {{ data.run.reason }} |
+{% endif %}
+
+{% endif %}
+{% if "config" in report.sections and data.run.config %}
+## 2. Конфигурация прогона
+
+| Параметр | Значение |
+|---|---|
+{% for key, value in data.run.config | dictsort %}
+| `{{ key }}` | {{ value }} |
+{% endfor %}
+
+{% endif %}
+{% if "metrics" in report.sections and metrics %}
+## 3. Метрики
+
+| Метрика | Ед. | Значений | Среднее | p50 | p95 | Максимум |
+|---|---|---:|---:|---:|---:|---:|
+{% for item in metrics %}
+| `{{ item.name }}` | {{ item.unit or "—" }} | {{ item.count }} | {{ item.mean }} | {{ item.p50 }} | {{ item.p95 }} | {{ item.max }} |
+{% endfor %}
+
+{% endif %}
+{% if "plots" in report.sections and plots %}
+## 4. Графики
+
+{% for plot in plots %}
+### {{ plot.title }}
+
+![{{ plot.title }}]({{ plot.path }})
+
+{% endfor %}
+{% endif %}
+{% if "scale" in report.sections and (stages or scale) %}
+## 5. Масштаб времени и план/факт
+
+{% if scale %}
+| Показатель | Значение |
+|---|---:|
+{% for row in scale %}
+| {{ row.name }} | {{ row.value }} {{ row.unit or "" }} |
+{% endfor %}
+{% endif %}
+
+{% if stages %}
+| Ступень | План, мс | p50, мс | p95, мс | Максимум, мс | Перерасход, мс | Отношение |
+|---|---:|---:|---:|---:|---:|---:|
+{% for item in stages %}
+| {{ item.stage }} | {{ item.plan_ms }} | {{ item.actual_p50_ms }} | {{ item.actual_p95_ms }} | {{ item.actual_max_ms }} | {{ item.overrun_ms }} | {{ item.ratio }} |
+{% endfor %}
+
+{% endif %}
+{% endif %}
+{% if "conclusions" in report.sections and conclusions %}
+## 6. Выводы
+
+{% for item in conclusions %}
+- **{{ item.level | upper }}** — {{ item.text }}
+{% endfor %}
+
+{% endif %}
+{% if artifacts %}
+## Артефакты
+
+| Вид | Файл | Хэш |
+|---|---|---|
+{% for item in artifacts %}
+| {{ item.kind }} | `{{ item.path }}` | {{ item.hash or "—" }} |
+{% endfor %}
+{% endif %}

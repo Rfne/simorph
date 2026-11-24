@@ -1,0 +1,46 @@
+{# Демонстрационный шаблон отчёта: REP-01 в examples/demo/project.json.
+   Показывает, что пользовательский шаблон подхватывается вместо встроенного.
+   Контекст: config, data, metrics, plots, stages, scale, conclusions, artifacts. #}
+# {{ config.title }}
+
+> Демонстрационный шаблон проекта: секции и порядок заданы здесь, а не в коде.
+
+**Прогон:** `{{ data.run_id }}` · **Вид:** {{ data.kind }} · **Статус:** {{ data.run.status }}
+**Сформирован:** {{ data.generated_at }} · **Шаблон:** {{ config.template }}
+
+{% if metrics %}
+## Метрики
+
+| Метрика | Значений | Среднее | p95 |
+|---|---:|---:|---:|
+{% for item in metrics %}
+| `{{ item.name }}` | {{ item.count }} | {{ item.mean }} | {{ item.p95 }} |
+{% endfor %}
+{% endif %}
+
+{% if plots %}
+## Графики
+
+{% for plot in plots %}
+### {{ plot.title }}
+
+![{{ plot.title }}]({{ plot.path }})
+
+{% endfor %}
+{% endif %}
+
+{% if stages %}
+## План и факт
+
+{% for item in stages %}
+- {{ item.stage }}: план {{ item.plan_ms }} мс, p95 {{ item.actual_p95_ms }} мс, перерасход {{ item.overrun_ms }} мс
+{% endfor %}
+{% endif %}
+
+{% if conclusions %}
+## Выводы
+
+{% for item in conclusions %}
+- **{{ item.level | upper }}** — {{ item.text }}
+{% endfor %}
+{% endif %}
